@@ -58,7 +58,7 @@ bg_dataset = BackgroundNoiseDataset(args.background_noise, data_aug_transform)
 add_bg_noise = AddBackgroundNoiseOnSTFT(bg_dataset)
 train_feature_transform = Compose([ToMelSpectrogramFromSTFT(n_mels=n_mels), DeleteSTFT(), ToTensor('mel_spectrogram', 'input')])
 train_dataset = SpeechCommandsDataset(args.train_dataset,
-                                Compose([LoadAudio(),
+                                Compose([LoadAudio(mic=True),
                                          data_aug_transform,
                                          add_bg_noise,
                                          train_feature_transform]))
@@ -167,7 +167,8 @@ def train(epoch):
         # statistics
         it += 1
         global_step += 1
-        running_loss += loss.data[0]
+        #running_loss += loss.data[0]
+        running_loss += loss.item()
         pred = outputs.data.max(1, keepdim=True)[1]
         if args.mixup:
             targets = batch['target']
@@ -175,7 +176,8 @@ def train(epoch):
         correct += pred.eq(targets.data.view_as(pred)).sum()
         total += targets.size(0)
 
-        writer.add_scalar('%s/loss' % phase, loss.data[0], global_step)
+        #writer.add_scalar('%s/loss' % phase, loss.data[0], global_step)
+        writer.add_scalar('%s/loss' % phase, loss.item(), global_step)
 
         # update the progress bar
         pbar.set_postfix({
@@ -205,7 +207,8 @@ def valid(epoch):
         inputs = torch.unsqueeze(inputs, 1)
         targets = batch['target']
 
-        inputs = Variable(inputs, volatile = True)
+        #inputs = Variable(inputs, volatile = True)
+        inputs = Variable(inputs)
         targets = Variable(targets, requires_grad=False)
 
         if use_gpu:
@@ -219,12 +222,14 @@ def valid(epoch):
         # statistics
         it += 1
         global_step += 1
-        running_loss += loss.data[0]
+        #running_loss += loss.data[0]
+        running_loss += loss.item()
         pred = outputs.data.max(1, keepdim=True)[1]
         correct += pred.eq(targets.data.view_as(pred)).sum()
         total += targets.size(0)
 
-        writer.add_scalar('%s/loss' % phase, loss.data[0], global_step)
+        #writer.add_scalar('%s/loss' % phase, loss.data[0], global_step)
+        writer.add_scalar('%s/loss' % phase, loss.item(), global_step)
 
         # update the progress bar
         pbar.set_postfix({
