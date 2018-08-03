@@ -29,7 +29,7 @@ parser.add_argument("--valid-dataset", type=str, default='datasets/speech_comman
 parser.add_argument("--background-noise", type=str, default='datasets/speech_commands/train/_background_noise_', help='path of background noise')
 parser.add_argument("--comment", type=str, default='', help='comment in tensorboard title')
 parser.add_argument("--batch-size", type=int, default=128, help='batch size')
-parser.add_argument("--dataload-workers-nums", type=int, default=6, help='number of workers for dataloader')
+parser.add_argument("--dataload-workers-nums", type=int, default=1, help='number of workers for dataloader')
 parser.add_argument("--weight-decay", type=float, default=1e-2, help='weight decay')
 parser.add_argument("--optim", choices=['sgd', 'adam'], default='sgd', help='choices of optimization algorithms')
 parser.add_argument("--learning-rate", type=float, default=1e-4, help='learning rate for optimization')
@@ -58,9 +58,9 @@ bg_dataset = BackgroundNoiseDataset(args.background_noise, data_aug_transform)
 add_bg_noise = AddBackgroundNoiseOnSTFT(bg_dataset)
 train_feature_transform = Compose([ToMelSpectrogramFromSTFT(n_mels=n_mels), DeleteSTFT(), ToTensor('mel_spectrogram', 'input')])
 train_dataset = SpeechCommandsDataset(args.train_dataset,
-                                Compose([LoadAudio(mic=True),
+                                Compose([LoadAudio(),
                                          data_aug_transform,
-                                         add_bg_noise,
+                                         #add_bg_noise,
                                          train_feature_transform]))
 
 valid_feature_transform = Compose([ToMelSpectrogram(n_mels=n_mels), ToTensor('mel_spectrogram', 'input')])
@@ -155,6 +155,8 @@ def train(epoch):
             targets = targets.cuda(async=True)
 
         # forward/backward
+	import pdb
+	pdb.set_trace()
         outputs = model(inputs)
         if args.mixup:
             loss = mixup_cross_entropy_loss(outputs, targets)

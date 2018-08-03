@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 from pyaudio import PyAudio,paInt16
 import pdb
 
-#file = 'datasets/speech_commands/train/bird/a045368c_nohash_0.wav'
-file = '01.wav'
+file = 'datasets/speech_commands/train/bird/a045368c_nohash_0.wav'
+#file = '01.wav'
 
 def audio():
 	
 	wav=wave.open(file, 'r')
 	frames=wav.readframes(-1)
+	pdb.set_trace()
 	wav.close()
 	frames=np.fromstring(frames, np.short)
 	nchs=wav.getnchannels()
@@ -47,6 +48,7 @@ def record():
         my_buf.append(string_audio_data)
         count+=1
         print('.')
+    pdb.set_trace()
     save_wave_file(file,my_buf)
     stream.close()
 
@@ -83,7 +85,7 @@ def replay():
     stream.close()
     pa.terminate()
 
-#record()
+record()
 #audio()
 #play()
-replay()
+#replay()

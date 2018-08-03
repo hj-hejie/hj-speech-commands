@@ -2,6 +2,7 @@ from audioread import *
 from audioread.rawread import *
 import wave
 import audioop
+from pyaudio import PyAudio,paInt16
 
 filename='/home/hejie/workspace/python/pytorch-speech-commands/datasets/speech_commands/train/bird/a045368c_nohash_0.wav'
 
@@ -23,12 +24,15 @@ class RawAudioMic(RawAudioFile):
 
 	def read_data(self, block_samples=1024):
 		old_width = self._file.getsampwidth()
-
+		pa=PyAudio()
+		stream=pa.open(format = paInt16,channels=1,rate=16000,input=True,frames_per_buffer=1)
+		count=0
 		while True:
-			data = self._file.readframes(block_samples)
-			if not data:
+			if count>=5:
 				break
-	
+			data = stream.read(16000)
+			count+=1
+			print '.'+str(count)
 			data = audioop.lin2lin(data, old_width, TARGET_WIDTH)
 			if self._needs_byteswap and self._file.getcomptype() != 'sowt':
 				data = byteswap(data)

@@ -2,6 +2,7 @@ __pycache__
 *.pth
 *.csv
 *.pyc
+*.swp
 pretrained/
 runs/
 datasets/speech_commands2/*
