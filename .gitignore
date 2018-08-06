@@ -6,3 +6,4 @@ __pycache__
 pretrained/
 runs/
 datasets/speech_commands2/*
+datasets/speech_commands4/*
