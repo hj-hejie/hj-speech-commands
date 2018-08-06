@@ -141,10 +141,7 @@ def train(epoch):
     pbar = tqdm(train_dataloader, unit="audios", unit_scale=train_dataloader.batch_size)
     for batch in pbar:
         inputs = batch['input']
-	import pdb
-	pdb.set_trace()
         inputs = torch.unsqueeze(inputs, 1)
-	pdb.set_trace()
         targets = batch['target']
 
         if args.mixup:
@@ -158,7 +155,6 @@ def train(epoch):
             targets = targets.cuda(async=True)
 
         # forward/backward
-	pdb.set_trace()
         outputs = model(inputs)
         if args.mixup:
             loss = mixup_cross_entropy_loss(outputs, targets)

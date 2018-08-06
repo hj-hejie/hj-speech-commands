@@ -28,11 +28,11 @@ class RawAudioMic(RawAudioFile):
 		stream=pa.open(format = paInt16,channels=1,rate=16000,input=True,frames_per_buffer=1)
 		count=0
 		while True:
-			if count>=5:
+			if count>=1:
 				break
+			print '.'+str(count)
 			data = stream.read(16000)
 			count+=1
-			print '.'+str(count)
 			data = audioop.lin2lin(data, old_width, TARGET_WIDTH)
 			if self._needs_byteswap and self._file.getcomptype() != 'sowt':
 				data = byteswap(data)
