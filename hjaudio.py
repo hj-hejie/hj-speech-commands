@@ -2,16 +2,13 @@ import wave
 import numpy as np
 import matplotlib.pyplot as plt
 from pyaudio import PyAudio,paInt16
-import pdb
 
-file = 'datasets/speech_commands/train/bird/a045368c_nohash_0.wav'
-#file = '01.wav'
+file = '01.wav'
 
 def audio():
 	
 	wav=wave.open(file, 'r')
 	frames=wav.readframes(-1)
-	pdb.set_trace()
 	wav.close()
 	frames=np.fromstring(frames, np.short)
 	nchs=wav.getnchannels()
@@ -43,12 +40,11 @@ def record():
                    frames_per_buffer=1)
     my_buf=[]
     count=0
-    while count<5:
+    while count<2:
+        print('.')
         string_audio_data = stream.read(16000)
         my_buf.append(string_audio_data)
         count+=1
-        print('.')
-    pdb.set_trace()
     save_wave_file(file,my_buf)
     stream.close()
 

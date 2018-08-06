@@ -60,7 +60,7 @@ train_feature_transform = Compose([ToMelSpectrogramFromSTFT(n_mels=n_mels), Dele
 train_dataset = SpeechCommandsDataset(args.train_dataset,
                                 Compose([LoadAudio(),
                                          data_aug_transform,
-                                         #add_bg_noise,
+                                         add_bg_noise,
                                          train_feature_transform]))
 
 valid_feature_transform = Compose([ToMelSpectrogram(n_mels=n_mels), ToTensor('mel_spectrogram', 'input')])
