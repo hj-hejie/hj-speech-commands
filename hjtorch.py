@@ -27,7 +27,7 @@ while True:
     _in=torch.unsqueeze(_in, 1)
     _in= Variable(_in)
     out=model(_in)
-    #print out
-    #print torch.argmax(out)
+    print out
+    print torch.argmax(out)
     from datasets import CLASSES as _CLASS
     print _CLASS[torch.argmax(out)]

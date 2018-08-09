@@ -1,11 +1,10 @@
 """Transforms on raw wav samples."""
 
-__author__ = 'Yuan Xu'
+__author__ = 'hejie'
 
 import random
 import numpy as np
 import librosa
-import librosa2
 
 import torch
 from torch.utils.data import Dataset
@@ -17,14 +16,13 @@ def should_apply_transform(prob=0.5):
 class LoadAudio(object):
     """Loads an audio into a numpy array."""
 
-    def __init__(self, sample_rate=16000, mic=False):
+    def __init__(self, sample_rate=16000):
         self.sample_rate = sample_rate
-        self.mic=mic
 
     def __call__(self, data):
         path = data['path']
         if path:
-            samples, sample_rate = librosa.load(path, self.sample_rate) if not self.mic else librosa2.loadfrommic(self.sample_rate)
+            samples, sample_rate = librosa.load(path, self.sample_rate)
         else:
             # silence
             sample_rate = self.sample_rate

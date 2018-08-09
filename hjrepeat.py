@@ -1,6 +1,6 @@
 import os
 
-dataset='/home/hejie/workspace/python/pytorch-speech-commands/datasets/speech_commands/'
+dataset='datasets/speech_commands/'
 
 for dir in os.listdir(dataset):
     dir2=os.path.join(dataset, dir)
@@ -9,6 +9,6 @@ for dir in os.listdir(dataset):
         if dir3 != '_background_noise_':
             for file in os.listdir(dir4):
                 for i in range(2000):
-                    print os.path.join(dir4, file)+'-->'+os.path.join(dir4, 's'+str(i)+file)
-                    os.symlink(os.path.join(dir4, file), os.path.join(dir4, 's'+str(i)+file))
+                    print os.path.join('.', file)+'-->'+os.path.join(dir4, 's'+str(i)+file)
+                    os.symlink(os.path.join('.', file), os.path.join(dir4, 's'+str(i)+file))
 
