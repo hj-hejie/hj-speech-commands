@@ -8,6 +8,9 @@ file = '01.wav'
 def audio():
 	
 	wav=wave.open(file, 'r')
+	hj=wav.getsampwidth()
+	import pdb
+	pdb.set_trace()
 	frames=wav.readframes(-1)
 	wav.close()
 	frames=np.fromstring(frames, np.short)

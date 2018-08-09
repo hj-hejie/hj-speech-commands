@@ -7,3 +7,5 @@ pretrained/
 runs/
 datasets/speech_commands2/*
 datasets/speech_commands4/*
+datasets/speech_commands_hj/*
+datasets/speech_commands_hj2/*
