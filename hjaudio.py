@@ -84,7 +84,8 @@ def replay():
     stream.close()
     pa.terminate()
 
-record()
-#audio()
-#play()
-#replay()
+if __name__='__main__':
+    record()
+    #audio()
+    #play()
+    #replay()
