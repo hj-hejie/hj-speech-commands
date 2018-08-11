@@ -1,0 +1,15 @@
+[ 84%] Building CXX object src/ATen/CMakeFiles/ATen.dir/__/THS/THSTensor.cpp.o
+[ 84%] Building CXX object src/ATen/CMakeFiles/ATen.dir/native/cpu/UnaryOpsKernel.cpp.DEFAULT.cpp.o
+[ 85%] Linking CXX shared library libATen.so
+[ 85%] Built target ATen
+Scanning dependencies of target verify_api_visibility
+[ 86%] Building CXX object src/ATen/test/CMakeFiles/verify_api_visibility.dir/verify_api_visibility.cpp.o
+[ 86%] Linking CXX executable verify_api_visibility
+../libATen.so: undefined reference to `cpuinfo_arm_linux_init'
+collect2: error: ld returned 1 exit status
+src/ATen/test/CMakeFiles/verify_api_visibility.dir/build.make:97: recipe for target 'src/ATen/test/verify_api_visibility' failed
+make[2]: *** [src/ATen/test/verify_api_visibility] Error 1
+CMakeFiles/Makefile2:401: recipe for target 'src/ATen/test/CMakeFiles/verify_api_visibility.dir/all' failed
+make[1]: *** [src/ATen/test/CMakeFiles/verify_api_visibility.dir/all] Error 2
+Makefile:127: recipe for target 'all' failed
+make: *** [all] Error 2
