@@ -13,3 +13,20 @@ CMakeFiles/Makefile2:401: recipe for target 'src/ATen/test/CMakeFiles/verify_api
 make[1]: *** [src/ATen/test/CMakeFiles/verify_api_visibility.dir/all] Error 2
 Makefile:127: recipe for target 'all' failed
 make: *** [all] Error 2
+
+
+
+[ 70%] Building CXX object caffe2/CMakeFiles/caffe2.dir/__/aten/src/ATen/native/cpu/SoftMaxKernel.cpp.DEFAULT.cpp.o
+[ 70%] Building CXX object caffe2/CMakeFiles/caffe2.dir/__/aten/src/ATen/native/cpu/ReduceOpsKernel.cpp.DEFAULT.cpp.o
+[ 71%] Building CXX object caffe2/CMakeFiles/caffe2.dir/__/aten/src/ATen/native/cpu/BinaryOpsKernel.cpp.DEFAULT.cpp.o
+[ 71%] Linking CXX shared library ../lib/libcaffe2.so
+/usr/bin/ld: cannot find -lonnxifi_loader
+collect2: error: ld returned 1 exit status
+caffe2/CMakeFiles/caffe2.dir/build.make:3798: recipe for target 'lib/libcaffe2.so' failed
+make[2]: *** [lib/libcaffe2.so] Error 1
+CMakeFiles/Makefile2:643: recipe for target 'caffe2/CMakeFiles/caffe2.dir/all' failed
+make[1]: *** [caffe2/CMakeFiles/caffe2.dir/all] Error 2
+Makefile:138: recipe for target 'all' failed
+make: *** [all] Error 2
+Failed to run 'bash tools/build_pytorch_libs.sh --use-nnpack caffe2 nanopb libshm'
+
