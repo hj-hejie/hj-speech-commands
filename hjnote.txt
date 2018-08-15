@@ -30,3 +30,5 @@ Makefile:138: recipe for target 'all' failed
 make: *** [all] Error 2
 Failed to run 'bash tools/build_pytorch_libs.sh --use-nnpack caffe2 nanopb libshm'
 
+
+/usr/bin/c++   --std=c++11  -Wno-deprecated -fvisibility-inlines-hidden -rdynamic -DONNX_NAMESPACE=onnx_torch -D_FORCE_INLINES -D_MWAITXINTRIN_H_INCLUDED -D__STRICT_ANSI__ -fopenmp -O2 -fPIC -Wno-narrowing -Wall -Wextra -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -O3   -L"/home/pi/sdb1/pytorch/torch/lib/tmp_install/lib"  -Wl,-rpath,$ORIGIN CMakeFiles/weakref_test.dir/__/aten/src/ATen/test/weakref_test.cpp.o -o ../bin/weakref_test -Wl,-rpath,::::::::::::::::::::::::::::::::::::::::::::::: -Wl,--no-as-needed,/home/pi/sdb1/pytorch/build/lib/libcaffe2.so -Wl,--as-needed ../lib/libprotobuf.a -Wl,--as-needed /home/pi/sdb1/pytorch/aten/build/src/ATen/cpu/cpuinfo/libcpuinfo.a -lpthread -lcpuinfo -lATen
