@@ -32,3 +32,24 @@ Failed to run 'bash tools/build_pytorch_libs.sh --use-nnpack caffe2 nanopb libsh
 
 
 /usr/bin/c++   --std=c++11  -Wno-deprecated -fvisibility-inlines-hidden -rdynamic -DONNX_NAMESPACE=onnx_torch -D_FORCE_INLINES -D_MWAITXINTRIN_H_INCLUDED -D__STRICT_ANSI__ -fopenmp -O2 -fPIC -Wno-narrowing -Wall -Wextra -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -O3   -L"/home/pi/sdb1/pytorch/torch/lib/tmp_install/lib"  -Wl,-rpath,$ORIGIN CMakeFiles/weakref_test.dir/__/aten/src/ATen/test/weakref_test.cpp.o -o ../bin/weakref_test -Wl,-rpath,::::::::::::::::::::::::::::::::::::::::::::::: -Wl,--no-as-needed,/home/pi/sdb1/pytorch/build/lib/libcaffe2.so -Wl,--as-needed ../lib/libprotobuf.a -Wl,--as-needed /home/pi/sdb1/pytorch/aten/build/src/ATen/cpu/cpuinfo/libcpuinfo.a -lpthread -lcpuinfo -lATen
+
+export NO_CUDA=1 # 反正不支持 Pi 上的 GPU
+export NO_DISTRIBUTED=1 # 不需要分布式。能消除一个编译错误
+export LIBRARY_PATH=/home/pi/sdb1/pytorch/build/lib
+cd /home/pi/sdb1/pytorch/build/caffe2
+vi CMakeFiles/weakref_test.dir/link.txt
+/usr/bin/cmake -E cmake_link_script CMakeFiles/weakref_test.dir/link.txt --verbose=1
+grep cpuinfo_arm_linux_init -nr .
+./aten/src/ATen/cpu/cpuinfo/src/api.h:39:void cpuinfo_arm_linux_init(void);
+./aten/src/ATen/cpu/cpuinfo/src/init.c:35:		pthread_once(&init_guard, &cpuinfo_arm_linux_init);
+./aten/src/ATen/cpu/cpuinfo/src/arm/linux/init.c:105:void cpuinfo_arm_linux_init(void) {
+Binary file ./aten/build/src/ATen/libATen.so matches
+Binary file ./aten/build/src/ATen/cpu/cpuinfo/libcpuinfo.a matches
+Binary file ./aten/build/src/ATen/cpu/cpuinfo/CMakeFiles/cpuinfo.dir/src/init.c.o matches
+./hejie.log:8:../libATen.so: undefined reference to `cpuinfo_arm_linux_init'
+./third_party/cpuinfo/src/api.h:39:void cpuinfo_arm_linux_init(void);
+./third_party/cpuinfo/src/init.c:35:		pthread_once(&init_guard, &cpuinfo_arm_linux_init);
+./third_party/cpuinfo/src/arm/linux/init.c:105:void cpuinfo_arm_linux_init(void) {
+Binary file ./build/confu-deps/cpuinfo/CMakeFiles/cpuinfo.dir/src/init.c.o matches
+Binary file ./build/lib/libcpuinfo.a matches
+Binary file ./build/lib/libcaffe2.so matches
