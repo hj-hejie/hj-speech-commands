@@ -53,3 +53,6 @@ Binary file ./aten/build/src/ATen/cpu/cpuinfo/CMakeFiles/cpuinfo.dir/src/init.c.
 Binary file ./build/confu-deps/cpuinfo/CMakeFiles/cpuinfo.dir/src/init.c.o matches
 Binary file ./build/lib/libcpuinfo.a matches
 Binary file ./build/lib/libcaffe2.so matches
+
+
+ qemu-system-arm -m 2048M -M vexpress-a15 -cpu cortex-a15 -kernel ./kernel-qemu-4.4.1-vexpress -dtb ./vexpress-v2p-ca15_a7.dtb -sd ../sda3/raspbian/2017-11-29-raspbian-stretch.img -append "root=/dev/mmcblk0p2 rootwait" -net nic -net user,hostfwd=tcp::5022-:22 -hdb ../sda3/raspbian/img.img
