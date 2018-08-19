@@ -18,7 +18,7 @@ class RawAudioMic(RawAudioFile):
 		while True:
 			if count>=2:
 				break
-			print '.'+str(count)
+			print ('.'+str(count))
 			data = stream.read(16000)
 			count+=1
 			data = audioop.lin2lin(data, pa.get_sample_size(paInt16), TARGET_WIDTH)

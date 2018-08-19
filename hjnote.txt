@@ -1,58 +1,96 @@
-[ 84%] Building CXX object src/ATen/CMakeFiles/ATen.dir/__/THS/THSTensor.cpp.o
-[ 84%] Building CXX object src/ATen/CMakeFiles/ATen.dir/native/cpu/UnaryOpsKernel.cpp.DEFAULT.cpp.o
-[ 85%] Linking CXX shared library libATen.so
-[ 85%] Built target ATen
-Scanning dependencies of target verify_api_visibility
-[ 86%] Building CXX object src/ATen/test/CMakeFiles/verify_api_visibility.dir/verify_api_visibility.cpp.o
-[ 86%] Linking CXX executable verify_api_visibility
-../libATen.so: undefined reference to `cpuinfo_arm_linux_init'
-collect2: error: ld returned 1 exit status
-src/ATen/test/CMakeFiles/verify_api_visibility.dir/build.make:97: recipe for target 'src/ATen/test/verify_api_visibility' failed
-make[2]: *** [src/ATen/test/verify_api_visibility] Error 1
-CMakeFiles/Makefile2:401: recipe for target 'src/ATen/test/CMakeFiles/verify_api_visibility.dir/all' failed
-make[1]: *** [src/ATen/test/CMakeFiles/verify_api_visibility.dir/all] Error 2
-Makefile:127: recipe for target 'all' failed
-make: *** [all] Error 2
 
+在 RaspberryPi 上编译 PyTorch
 
+在 RaspberryPi 上编译 TensorFlow 之后，继续用 PyTorch 摧残 RaspberryPi。
 
-[ 70%] Building CXX object caffe2/CMakeFiles/caffe2.dir/__/aten/src/ATen/native/cpu/SoftMaxKernel.cpp.DEFAULT.cpp.o
-[ 70%] Building CXX object caffe2/CMakeFiles/caffe2.dir/__/aten/src/ATen/native/cpu/ReduceOpsKernel.cpp.DEFAULT.cpp.o
-[ 71%] Building CXX object caffe2/CMakeFiles/caffe2.dir/__/aten/src/ATen/native/cpu/BinaryOpsKernel.cpp.DEFAULT.cpp.o
-[ 71%] Linking CXX shared library ../lib/libcaffe2.so
-/usr/bin/ld: cannot find -lonnxifi_loader
-collect2: error: ld returned 1 exit status
-caffe2/CMakeFiles/caffe2.dir/build.make:3798: recipe for target 'lib/libcaffe2.so' failed
-make[2]: *** [lib/libcaffe2.so] Error 1
-CMakeFiles/Makefile2:643: recipe for target 'caffe2/CMakeFiles/caffe2.dir/all' failed
-make[1]: *** [caffe2/CMakeFiles/caffe2.dir/all] Error 2
-Makefile:138: recipe for target 'all' failed
-make: *** [all] Error 2
-Failed to run 'bash tools/build_pytorch_libs.sh --use-nnpack caffe2 nanopb libshm'
+安装依赖
 
+sudo apt-get install libopenblas-dev cython3 libatlas-dev m4 libblas-dev
+1
+2
+	
+sudo apt-get install libopenblas-dev cython3 libatlas-dev m4 libblas-dev
+ 
 
-/usr/bin/c++   --std=c++11  -Wno-deprecated -fvisibility-inlines-hidden -rdynamic -DONNX_NAMESPACE=onnx_torch -D_FORCE_INLINES -D_MWAITXINTRIN_H_INCLUDED -D__STRICT_ANSI__ -fopenmp -O2 -fPIC -Wno-narrowing -Wall -Wextra -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -O3   -L"/home/pi/sdb1/pytorch/torch/lib/tmp_install/lib"  -Wl,-rpath,$ORIGIN CMakeFiles/weakref_test.dir/__/aten/src/ATen/test/weakref_test.cpp.o -o ../bin/weakref_test -Wl,-rpath,::::::::::::::::::::::::::::::::::::::::::::::: -Wl,--no-as-needed,/home/pi/sdb1/pytorch/build/lib/libcaffe2.so -Wl,--as-needed ../lib/libprotobuf.a -Wl,--as-needed /home/pi/sdb1/pytorch/aten/build/src/ATen/cpu/cpuinfo/libcpuinfo.a -lpthread -lcpuinfo -lATen
+设置环境变量
 
 export NO_CUDA=1 # 反正不支持 Pi 上的 GPU
 export NO_DISTRIBUTED=1 # 不需要分布式。能消除一个编译错误
-export LIBRARY_PATH=/home/pi/sdb1/pytorch/build/lib
-cd /home/pi/sdb1/pytorch/build/caffe2
-vi CMakeFiles/weakref_test.dir/link.txt
-/usr/bin/cmake -E cmake_link_script CMakeFiles/weakref_test.dir/link.txt --verbose=1
-grep cpuinfo_arm_linux_init -nr .
-./aten/src/ATen/cpu/cpuinfo/src/api.h:39:void cpuinfo_arm_linux_init(void);
-./aten/src/ATen/cpu/cpuinfo/src/init.c:35:		pthread_once(&init_guard, &cpuinfo_arm_linux_init);
-./aten/src/ATen/cpu/cpuinfo/src/arm/linux/init.c:105:void cpuinfo_arm_linux_init(void) {
-Binary file ./aten/build/src/ATen/libATen.so matches
-Binary file ./aten/build/src/ATen/cpu/cpuinfo/libcpuinfo.a matches
-Binary file ./aten/build/src/ATen/cpu/cpuinfo/CMakeFiles/cpuinfo.dir/src/init.c.o matches
-./hejie.log:8:../libATen.so: undefined reference to `cpuinfo_arm_linux_init'
-./third_party/cpuinfo/src/api.h:39:void cpuinfo_arm_linux_init(void);
-./third_party/cpuinfo/src/init.c:35:		pthread_once(&init_guard, &cpuinfo_arm_linux_init);
-./third_party/cpuinfo/src/arm/linux/init.c:105:void cpuinfo_arm_linux_init(void) {
-Binary file ./build/confu-deps/cpuinfo/CMakeFiles/cpuinfo.dir/src/init.c.o matches
-Binary file ./build/lib/libcpuinfo.a matches
-Binary file ./build/lib/libcaffe2.so matches
+1
+2
+3
+	
+export NO_CUDA=1 # 反正不支持 Pi 上的 GPU
+export NO_DISTRIBUTED=1 # 不需要分布式。能消除一个编译错误
+ 
+
+获取源代码
+
+git clone --recursive https://github.com/pytorch/pytorch
+1
+2
+	
+git clone --recursive https://github.com/pytorch/pytorch
+ 
+
+然后切换到一个已经发行的分支上（例如 v0.3.0）
+
+git checkout -b v0.3.0
+1
+2
+	
+git checkout -b v0.3.0
+ 
+
+编译和安装
+
+编译：
+
+python3 setup.py build
+1
+2
+	
+python3 setup.py build
+ 
+
+直接安装：
+
+sudo python3 setup.py install
+1
+2
+	
+sudo python3 setup.py install
+ 
+
+生成 whl 包（去 dist 文件夹下收割结果）：
+
+python3 setup.py bdist_wheel
+1
+2
+	
+python3 setup.py bdist_wheel
+ 
+
+测试
+
+import torch
+a = torch.FloatTensor((2,2))
+a.add_(3)
+print (a)
+1
+2
+3
+4
+5
+	
+import torch
+a = torch.FloatTensor((2,2))
+a.add_(3)
+print (a)
+ 
+ 
+
+qemu-system-arm -m 2048M -M vexpress-a15 -cpu cortex-a15 -kernel ./kernel-qemu-4.4.1-vexpress -dtb ./vexpress-v2p-ca15_a7.dtb -sd ../sda3/raspbian/2017-11-29-raspbian-stretch.img -append "root=/dev/mmcblk0p2 rootwait" -net nic -net user,hostfwd=tcp::5022-:22
 
 
- qemu-system-arm -m 2048M -M vexpress-a15 -cpu cortex-a15 -kernel ./kernel-qemu-4.4.1-vexpress -dtb ./vexpress-v2p-ca15_a7.dtb -sd ../sda3/raspbian/2017-11-29-raspbian-stretch.img -append "root=/dev/mmcblk0p2 rootwait" -net nic -net user,hostfwd=tcp::5022-:22 -hdb ../sda3/raspbian/img.img
+python3.5/site-packages/torch/serialization.py:472:unpickler = pickle_module.Unpickler(f, encoding='utf8')

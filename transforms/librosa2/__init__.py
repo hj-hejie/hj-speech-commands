@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from librosa import *
-import audioread2
+from . import audioread2
 import numpy as np
 
 def loadfrommic(sr=16000, mono=True, offset=0.0, duration=None,

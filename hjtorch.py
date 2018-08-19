@@ -14,7 +14,7 @@ transform = Compose([FixAudioLength(), ToMelSpectrogram(n_mels=40), ToTensor('me
 #samples, sample_rate = librosa.load('datasets/speech_commands_origin/train/no/a05a90c1_nohash_2.wav', None)
 #samples, sample_rate = librosa.load('datasets/speech_commands_origin/train/yes/a05a90c1_nohash_0.wav', None)
 #samples, sample_rate = librosa.load('hjwavkaikongtiao0.wav', None)
-samples, sample_rate = librosa.load('datasets/speech_commands/train/kaidianshi/s99901.wav', None)
+samples, sample_rate = librosa.load('datasets/speech_commands/train/kaidianshi/01.wav', None)
 model = torch.load('1533806137984-vgg19_bn_sgd_plateau_bs100_lr1.0e-02_wd1.0e-02-best-acc.pth')
 #model = torch.load('hj-best-acc.pth')
 model.float()
@@ -30,10 +30,10 @@ if True:
     _in= Variable(_in)
     out=model(_in)
     out=softmax(out, dim=1)
-    print out
-    print torch.argmax(out)
+    print(out)
+    print(torch.argmax(out))
     from datasets import CLASSES as _CLASS
-    print torch.max(out)
-    print _CLASS[torch.argmax(out)]
+    print(torch.max(out))
+    print(_CLASS[torch.argmax(out)])
     #lr.output.write_wav('hjwav'+_CLASS[torch.argmax(out)]+str(count)+'.wav', samples, sample_rate)
     count+=1
