@@ -36,3 +36,6 @@ class HjLight(Light):
     def turn_off(self, **kwargs):
         self.ws.send('p0.off()\n\r')
         self._state=False
+
+    def __del__(self):
+        self.ws.close()
