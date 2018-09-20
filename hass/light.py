@@ -1,5 +1,6 @@
 import logging
 
+from websocket import create_connection
 from homeassistant.components.light import Light
 
 _LOGGER = logging.getLogger(__name__)
