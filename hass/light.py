@@ -13,14 +13,13 @@ class HjLight(Light):
     def __init__(self):
         self._name = 'hejielight1'
         self._state = False
-        self.ws = create_connection("ws://esp8266ip:8266/")
+        self.ws = create_connection("ws://192.168.0.120:8266/")
         _LOGGER.info(self.ws.recv())
-	self.ws.send('username\n\r')
+        self.ws.send('passw0rd\r\n')
         _LOGGER.info(self.ws.recv())
-	self.ws.send('password\n\r')
-        _LOGGER.info(self.ws.recv())
-        self.ws.send('from machine import Pin\n\r')
-        self.ws.send('p0=Pin(0)\n\r')
+        self.ws.send('from machine import Pin\r\n')
+        self.ws.send('p0=Pin(0, Pin.OUT)\r\n')
+        _LOGGER.info('light inited +++++++++++++++++++++++++++++++++++++++++++')
 
     @property
     def name(self):
@@ -31,12 +30,15 @@ class HjLight(Light):
         return self._state
 
     def turn_on(self, **kwargs):
-	self.ws.send('p0.on()\n\r')
+        _LOGGER.info('light turn on ***************************************')
+        self.ws.send('p0.off()\r\n')
         self._state=True
 
     def turn_off(self, **kwargs):
-        self.ws.send('p0.off()\n\r')
+        _LOGGER.info('light turn off---------------------------------------')
+        self.ws.send('p0.on()\r\n')
         self._state=False
 
     def __del__(self):
         self.ws.close()
+        _LOGGER.info('light deled +++++++++++++++++++++++++++++++++++++++++')
