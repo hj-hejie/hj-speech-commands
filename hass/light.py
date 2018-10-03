@@ -13,7 +13,7 @@ class HjLight(Light):
     def __init__(self):
         self._name = 'hejielight1'
         self._state = False
-        self.ws = create_connection("ws://192.168.0.120:8266/")
+        self.ws = create_connection("ws://192.168.1.5:8266/")
         _LOGGER.info(self.ws.recv())
         self.ws.send('passw0rd\r\n')
         _LOGGER.info(self.ws.recv())
