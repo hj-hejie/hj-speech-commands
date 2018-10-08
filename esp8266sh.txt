@@ -1,5 +1,5 @@
-green-tx
-white-rx
+green(tx)-rx
+white(rx)-tx
 red-5v
 black-gnd
 
