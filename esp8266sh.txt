@@ -13,3 +13,10 @@ esptool.py --port /dev/ttyUSB0 --baud 460800 write_flash --flash_size=detect 0 e
 import webrepl_setup
 import webrepl
 webrepl.start()
+
+nodemcuv3:
+(press flash button before power on)
+irrecive:
+left-D5(gpio4)
+middle-gnd
+right-3v
