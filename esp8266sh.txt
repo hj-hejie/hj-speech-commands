@@ -17,6 +17,9 @@ webrepl.start()
 nodemcuv3:
 (press flash button before power on)
 irrecive:
-left-D5(gpio4)
+left-D5(gpio14)
 middle-gnd
 right-3v
+irsend:
++-D2(gpio4)
+--gnd
