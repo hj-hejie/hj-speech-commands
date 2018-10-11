@@ -2,8 +2,6 @@
 import ifcfg
 from scapy.all import srp, Ether, ARP
 
-print('Content-Type: text/html\n')
-
 ifcard='wlp4s0'
 macs=[
    '0c:72:2c:4e:26:f8',
@@ -21,5 +19,4 @@ for name, interface in ifcfg.interfaces().items():
 ans,unans = srp(Ether(dst='FF:FF:FF:FF:FF:FF')/ARP(pdst=subnet), timeout=2)
 for send, rcv in ans:
    map2ip[rcv.src]=rcv.psrc
-print('<html>hejie</html>')
 print(map2ip)
