@@ -5,23 +5,29 @@ import os
 
 if __name__ == '__main__':
     keys={}
-    filename='irrawcode.txt'
+    filename='irrawcode.json'
+
     if os.path.exists(filename):
         with open(filename) as f:
             keys=json.load(f)
-    serial = serial.Serial('/dev/ttyUSB0', 9600, timeout=0.5) 
+    serial = serial.Serial('/dev/ttyUSB1', 115200, timeout=0.5) 
     if serial.isOpen() :
         print('open success')
     else :
         print('open failed')
 
     try:
-        while(True):
-            data = serial.read_all()
-            if data != '':
-                print('ir raw code : ',data)
-                key=input('input key name>')
-                keys[key]=data
+        while True :
+            data = serial.readline()
+            if data != b'':
+                datastr=data.decode()
+                if datastr.startswith('uint16_t rawData'):
+                    print('ir raw code : ', datastr)
+                    rawcode=datastr[ datastr.index('{')+1: datastr.index('}')-1 ].replace(' ','')
+                    key=input('input key name>')
+                    keys[key]=rawcode
+                else:
+                    sleep(0.02)
             else:
                 sleep(0.02)
 
