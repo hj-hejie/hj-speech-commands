@@ -12,7 +12,7 @@ if __name__ == "__main__":
     ADDR = (HOST, PORT)
     tcpCliSock = socket(AF_INET, SOCK_STREAM)
     tcpCliSock.connect(ADDR)
-    tcpCliSock.send((keys['poweron']+'\\n\\r').encode())
+    tcpCliSock.send((keys['poweroff']+'\\n\\r').encode())
     data = tcpCliSock.recv(BUFSIZE).decode()
     print(data)
     tcpCliSock.close()
