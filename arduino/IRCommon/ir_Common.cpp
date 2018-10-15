@@ -1,16 +1,38 @@
 #include "ir_Common.h"
-#include <algorithm>
-#ifndef ARDUINO
-#include <string>
-#endif
-#include "IRremoteESP8266.h"
-#include "IRrecv.h"
-#include "IRsend.h"
-#include "IRutils.h"
-#include "ir_Kelvinator.h"
 
 IRCommonAC::IRCommonAC(uint16_t pin) : _irsend(pin) {
-  gcString="";
+  bool ok = SPIFFS.begin();
+  if (ok) {
+    Serial.println("ok");
+    bool exist = SPIFFS.exists(jsonFile);
+
+    if (exist) {
+      Serial.println("The file exists!"); 
+
+      File f = SPIFFS.open(jsonFile, "r");
+      if (!f) {
+        Serial.println("Some thing went wrong trying to open the file...");
+      }
+      else {
+        int s = f.size();
+        Serial.printf("Size=%d\r\n", s);
+
+        String data = f.readString();
+        DynamicJsonDocument doc;
+        DeserializationError error = deserializeJson(doc, data);
+
+        if (error) {
+          Serial.print(F("deserializeJson() failed: "));
+          Serial.println(error.c_str());
+          return;
+        }
+        
+        JsonObject json = doc.as<JsonObject>();
+
+        f.close();
+      }
+    }
+  }
 }
 
 void IRCommonAC::sendGCString(String str) {
@@ -58,13 +80,17 @@ void IRCommonAC::begin() {
 }
 
 void IRCommonAC::send() {
- sendGCString(gcString); 
+  sendGCString(gcString); 
 }
 
 void IRCommonAC::on() {
+  const char* rawcode=json["poweron"];
+  String str(rawcode);
+  gcString=str;
 }
 
 void IRCommonAC::off() {
+  const char* rawcode=json["poweroff"];
+  String str(rawcode);
+  gcString=str;
 }
-
-#endif

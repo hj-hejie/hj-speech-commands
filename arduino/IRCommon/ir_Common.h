@@ -1,20 +1,15 @@
 #ifndef IR_COMMON_H_
 #define IR_COMMON_H_
-
-#define __STDC_LIMIT_MACROS
-#include <stdint.h>
-#ifndef UNIT_TEST
-#include <Arduino.h>
-#else
-#include <string>
 #endif
+#include"FS.h"
 #include "IRremoteESP8266.h"
 #include "IRsend.h"
+#include <ArduinoJson.h>
 
 // Classes
 class IRCommonAC {
  public:
-  explicit IRGreeAC(uint16_t pin);
+  explicit IRCommonAC(uint16_t pin);
   void send();
   void begin();
   void on();
@@ -23,7 +18,8 @@ class IRCommonAC {
  private:
   void sendGCString(String str);
   IRsend _irsend;
-  String gcString;
+  String gcString="";
+  String jsonFile="irrawcode_ac.json";
+  JsonObject json;
+  uint16_t *code_array;
 };
-
-#endif
