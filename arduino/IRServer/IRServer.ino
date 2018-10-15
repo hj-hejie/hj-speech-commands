@@ -98,11 +98,18 @@ void setup(void) {
 
   server.onNotFound(handleNotFound);
 
-  server.on("/ir", [](){
-    #if (defined IR_FUJITSU_H_) || (defined IR_GREE_H_)
-      
+  server.on("/on", [](){
+    #if (defined IR_FUJITSU_H_)
+      aircondition.setCmd(FUJITSU_AC_CMD_TURN_ON);
+    #else
+      aircondition.on();
     #endif
-    server.send(200, "text/plain", "this works as well");
+    server.send(200, "application/json", "{\"status\":\"ok\"}");
+  });
+
+  server.on("/off", [](){
+    aircondition.off();
+    server.send(200, "application/json", "{\"status\":\"ok\"}");
   });
 
   server.begin();
