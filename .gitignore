@@ -1,12 +1,12 @@
 __pycache__
-*.pth
 *.csv
 *.pyc
 *.swp
+*.pth
 pretrained/
 runs/
-datasets/speech_commands2/*
-datasets/speech_commands4/*
-datasets/speech_commands_hj/*
-datasets/speech_commands_hj2/*
 hjwav*
+datasets/speech_commands/
+datasets/speech_commands_origin/
+hass/*.json
+datasets/speech_commands/split_dataset.py
