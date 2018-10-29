@@ -1,3 +1,4 @@
+import random
 import wave
 from pyaudio import PyAudio,paInt16
 
@@ -43,9 +44,10 @@ def rewrite():
 
 def mywrite():
     buf=[]
-    for i in range(32000):
-        buf.append(i%(2**8))
-    fms_byte=bytes(buf)
+    for i in range(16000):
+        buf.append(random.randint(0,2**16-1).to_bytes(2, byteorder='little'))
+    #fms_byte=bytes(buf)
+    fms_byte=b''.join(buf)
     dest=wave.open('hjwavtest03.wav', 'wb')
     dest.setnchannels(channels)
     dest.setsampwidth(sampwidth)
