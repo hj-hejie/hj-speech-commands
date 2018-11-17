@@ -46,5 +46,5 @@ class Asr(Light):
         self._state=False
 
 if __name__ == '__main__': 
-    server = socketserver.ThreadingTCPServer(('192.168.1.4',8009),AsrServer)
+    server = socketserver.ThreadingTCPServer(('hejie-ThinkPad-L450.local',8009),AsrServer)
     server.serve_forever()
