@@ -1,29 +1,45 @@
 #include "ESP8266BaseService.h"
 
-ESP8266BaseService::ESP8266BaseService(char* dnsName){
-  ESP8266BaseService("", "", dnsName);
+ESP8266BaseService::ESP8266BaseService():http(80){
 }
 
-ESP8266BaseService::ESP8266BaseService(String wifiSid, String wifiPassword, char* dnsName):http(80){
+void ESP8266BaseService::begin(char* dnsName){
+  begin("19KFS", "abcd1234", dnsName);
+}
+
+void ESP8266BaseService::begin(char* wifiSid, char* wifiPassword, char* dnsName){
+  _dnsName=dnsName;
+  _wifi=wifiSid;
   
-  WiFi.begin("", "");
-  Serial.println("Connecting WiFi");
+  Serial.begin(115200);
+  delay(10);
+  
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(wifiSid, wifiPassword);
+  Serial.print("Connecting to ");
+  Serial.println(wifiSid);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.print("\nWiFi Connected");
+  Serial.println("\nWiFi Connected");
+  _ip=WiFi.localIP();
 
-  if (mdns.begin(dnsName, WiFi.localIP())) {
-    Serial.println("MDNS responder started");
+  if (!MDNS.begin(dnsName)) {
+    Serial.println("Error setting up MDNS responder!");
+    while (1) {
+      delay(1000);
+    }
   }
+  Serial.println("MDNS responder started");
 
   http.on("/", [this](){
     http.send(200, "text/html",
             "<html>" \
-              "<head><title>hejie</title></head>" \
+              "<head><title>"+_dnsName+"</title></head>" \
               "<body>" \
-                "<h1>hejie</h1>" \
+                "<div>ip:"+_ip+"</div>"\
+                "<div>wifi:"+_wifi+"</div>"\
               "</body>" \
             "</html>");
   });

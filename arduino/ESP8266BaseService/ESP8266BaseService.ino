@@ -1,6 +1,6 @@
 #include "ESP8266BaseService.h"
 
-ESP8266BaseService bs("hejie");
+ESP8266BaseService bs;
 
 void setup(){
   bs.httpon("/hejie", [](){});
