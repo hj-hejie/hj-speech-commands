@@ -12,7 +12,7 @@ void ESP8266BaseService::begin(char* wifiSid, char* wifiPassword, char* dnsName)
   _wifi=wifiSid;
   
   Serial.begin(115200);
-  delay(10);
+  delay(100);
   
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifiSid, wifiPassword);
@@ -58,12 +58,4 @@ void ESP8266BaseService::begin(char* wifiSid, char* wifiPassword, char* dnsName)
   });
   http.begin();
   Serial.println("HTTP server started");
-}
-
-void ESP8266BaseService::httpon(const String &uri, THandlerFunction handler){
-  http.on(uri, handler);
-}
-
-void ESP8266BaseService::httpHandleClient(){
-  http.handleClient();
 }
