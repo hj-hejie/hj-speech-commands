@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from librosa import *
-from . import audioread2
 import numpy as np
 
-def loadfrommic(sr=16000, mono=True, offset=0.0, duration=None,
-         dtype=np.float32, res_type='kaiser_best'):
+def loadfrom(sr=16000, mono=True, offset=0.0, duration=None,
+         dtype=np.float32, res_type='kaiser_best', inputsource=None):
     y = []
-    with audioread2.mic_open() as input_file:
+    with inputsource as input_file:
         sr_native = input_file.samplerate
         n_channels = input_file.channels
 
@@ -64,3 +63,11 @@ def loadfrommic(sr=16000, mono=True, offset=0.0, duration=None,
     y = np.ascontiguousarray(y, dtype=dtype)
 
     return (y, sr)
+
+def loadfrommic():
+    import audioread2
+    return loadfrom(inputsource=audioread2.RawAudioMic())
+
+def loadfrombuff(buff):
+    import buffread
+    return loadfrom(inputsource=buffread.RawAudioBuff(buff))

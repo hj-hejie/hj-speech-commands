@@ -1,14 +1,11 @@
 from audioread import *
 from audioread.rawread import *
-import wave
 import audioop
 from pyaudio import PyAudio,paInt16
 
-filename='/home/hejie/workspace/python/pytorch-speech-commands/datasets/speech_commands/train/bird/a045368c_nohash_0.wav'
+class RawAudioBuff(RawAudioFile):
 
-class RawAudioMic(RawAudioFile):
-
-	def __init__(self):
+	def __init__(self, buff):
 		pass
 
 	def read_data(self):
@@ -35,5 +32,3 @@ class RawAudioMic(RawAudioFile):
 	def samplerate(self):
 		return 16000
 	
-def mic_open():
-	return RawAudioMic()
