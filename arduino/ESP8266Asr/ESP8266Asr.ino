@@ -16,7 +16,8 @@ void setup()
 void loop()
 {
   if(first){
-  	for(int i=0;i<20000;i++)
+    Serial.println("ESP8266Asr sounding***************");
+    for(int i=0;i<20000;i++)
     {
       str_payload += char(analogRead(A0)/4);
     }
