@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from librosa import *
 import numpy as np
+import audioread2
+import buffread
 
 def loadfrom(sr=16000, mono=True, offset=0.0, duration=None,
          dtype=np.float32, res_type='kaiser_best', inputsource=None):
@@ -65,9 +67,7 @@ def loadfrom(sr=16000, mono=True, offset=0.0, duration=None,
     return (y, sr)
 
 def loadfrommic():
-    import audioread2
     return loadfrom(inputsource=audioread2.RawAudioMic())
 
 def loadfrombuff(buff):
-    import buffread
     return loadfrom(inputsource=buffread.RawAudioBuff(buff))

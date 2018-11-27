@@ -1,4 +1,6 @@
 import logging
+import time
+import wave
 import socketserver
 
 from homeassistant.components.light import Light
@@ -12,12 +14,17 @@ class AsrServer(socketserver.BaseRequestHandler):
 
     def handle(self):
         _LOGGER.info('AsrServer handling*******************************')
-        self.request.sendall(b'hejieserver')
         while True:
-            data=self.request.recv(1)
+            data=self.request.recv(20000)
             if data.decode().strip():
-                print('hejieserver:'+data.decode())
-
+                _LOGGER.info('AsrServer create file*************************')
+                dest=wave.open('asr'+time.strftime('%H%M%S', time.localtime())+'.wav', 'wb')
+                dest.setnchannels(1)
+                dest.setsampwidth(1)
+                dest.setframerate(10000)
+                dest.writeframes(data)
+                dest.close()
+            
 class Asr(Light):
 
     def __init__(self, hass):
@@ -36,12 +43,12 @@ class Asr(Light):
         return self._state
 
     def turn_on(self, **kwargs):
-        print('asr turn on ***********************************************')
+        _LOGGER.info('asr turn on ***********************************************')
         self.hass.services.call('light', 'turn_on', {'entity_id': 'light.hejielight1'})
         self._state=True
 
     def turn_off(self, **kwargs):
-        print('asr trun off -----------------------------------------------')
+        _LOGGER.info('asr trun off -----------------------------------------------')
         self.hass.services.call('light', 'turn_off', {'entity_id': 'light.hejielight1'})
         self._state=False
 
