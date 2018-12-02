@@ -13,17 +13,21 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 class AsrServer(socketserver.BaseRequestHandler):
 
     def handle(self):
-        _LOGGER.info('AsrServer handling*******************************')
+        print('AsrServer handling*******************************')
+        _buffer=b''
         while True:
             data=self.request.recv(20000)
-            if data.decode().strip():
-                _LOGGER.info('AsrServer create file*************************')
-                dest=wave.open('asr'+time.strftime('%H%M%S', time.localtime())+'.wav', 'wb')
-                dest.setnchannels(1)
-                dest.setsampwidth(1)
-                dest.setframerate(10000)
-                dest.writeframes(data)
-                dest.close()
+            if data.strip():
+                _buffer=_buffer+data
+                if len(_buffer)>=20000:
+                    print(('AsrServer create file len %s*************************')%len(_buffer))
+                    dest=wave.open('asr'+time.strftime('%H%M%S', time.localtime())+'.wav', 'wb')
+                    dest.setnchannels(1)
+                    dest.setsampwidth(1)
+                    dest.setframerate(10000)
+                    dest.writeframes(_buffer[:20000])
+                    dest.close()
+                    _buffer=_buffer[20000:]
             
 class Asr(Light):
 

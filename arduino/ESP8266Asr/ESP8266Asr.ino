@@ -7,7 +7,7 @@ bool first=true;
 
 void setup()
 {
-  bs.begin("ESP8266Asr");
+  bs.begin("hjwifi", "hejiepassw0rd", "ESP8266Asr");
   if (!client.connect("hejie-ThinkPad-L450.local", 8009)) {
     Serial.println("connection failed");
   }	
