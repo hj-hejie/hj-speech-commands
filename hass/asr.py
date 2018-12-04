@@ -4,10 +4,17 @@ import collections
 import socketserver
 import webrtcvad
 import audioop
+import torch
+from torch.autograd import Variable
+import transforms.librosa2 as lr
 
 from homeassistant.components.light import Light
 
 _LOGGER = logging.getLogger(__name__)
+
+transform = Compose([FixAudioLength(), ToMelSpectrogram(n_mels=40), ToTensor('mel_spectrogram', 'input')])
+model = torch.load('hj-best-acc.pth')
+model.float()
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
     add_devices([Asr(hass)])
@@ -26,7 +33,21 @@ class AsrServer(socketserver.BaseRequestHandler):
         frames = frame_generator(30, 16000)
         segments = vad_collector(16000, 30, 300, vad, frames)
         for i, segment in enumerate(segments):
-            print('--end')
+            lsamples, sample_rate=r.loadfrombuff(segment)
+            data={}
+            data['samples'] = samples
+            data['sample_rate'] = sample_rate
+            rs=transform(data)
+            _in=rs['input'].unsqueeze(0)
+            _in=torch.unsqueeze(_in, 1)
+            _in= Variable(_in)
+            out=model(_in)
+            out=softmax(out, dim=1)
+            print(out)
+            print(torch.argmax(out))
+            from datasets import CLASSES as _CLASS
+            print(torch.max(out))
+            print(_CLASS[torch.argmax(out)])
 
     def frame_generator(frame_duration_ms, sample_rate):
         n = int(sample_rate * (frame_duration_ms / 1000.0) * 2)
