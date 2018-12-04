@@ -1,8 +1,10 @@
 import random
+import numpy as np
 import wave
 from pyaudio import PyAudio,paInt16
 import audioop
 import librosa
+import pdb
 
 framerate=8000
 NUM_SAMPLES=2000
@@ -34,14 +36,18 @@ def my_record():
     stream.close()
 
 def rewrite():
-    orign=wave.open('hjwavtest01.wav')
-    fms_byte=orign.readframe(orign.getnframes())
+    orign=wave.open('hjwavtest07.wav')
+    fms_byte=orign.readframes(orign.getnframes())
     orign.close()
-    dest=wave.open('hjwavtest02.wav', 'wb')
-    dest.setnchannels(channels)
-    dest.setsampwidth(sampwidth)
-    dest.setframerate(framerate)
-    dest.writeframes(fms_byte)
+    dest=wave.open('hjwavtest08.wav', 'wb')
+    rebyte = audioop.lin2lin(fms_byte, 1, 2)
+    #resampbyte = librosa.resample(np.concatenate([rebyte]), 10000, 16000, res_type='kaiser_best')
+    cvbyte=audioop.ratecv(rebyte, 2, 1, 10000, 16000, None)[0]
+    pdb.set_trace()
+    dest.setnchannels(1)
+    dest.setsampwidth(2)
+    dest.setframerate(16000)
+    dest.writeframes(cvbyte)
     dest.close()
 
 def mywrite():
@@ -104,8 +110,8 @@ def resample(input_signal,src_fs,tar_fs):
 
 if __name__ == '__main__':
     #my_record()
-    #rewrite()
-    mywrite()
+    rewrite()
+    #mywrite()
     #conv()
     #conv2()
     print('Over!') 

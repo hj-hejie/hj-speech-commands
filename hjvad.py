@@ -50,7 +50,7 @@ def vad_collector(sample_rate, frame_duration_ms,
     ring_buffer = collections.deque(maxlen=num_padding_frames)
     triggered = False
     voiced_frames = []
-    for frame in frames:
+    for i, frame in enumerate(frames):
         sys.stdout.write(
             '1' if vad.is_speech(frame.bytes, sample_rate) else '0')
         if not triggered:
@@ -90,10 +90,10 @@ def main(args):
     vad = webrtcvad.Vad(int(args[0]))
     '''
     #audio, sample_rate = read_wave('/home/hejie/workspace/pytorch-speech-commands/datasets/speech_commands/train/kaideng/01.wav')
-    audio, sample_rate = read_wave('test1.wav')
+    audio, sample_rate = read_wave('hjwavtest09.wav')
     vad = webrtcvad.Vad(3)
     frames = frame_generator(30, audio, sample_rate)
-    frames = list(frames)
+    #frames = list(frames)
     segments = vad_collector(sample_rate, 30, 300, vad, frames)
     for i, segment in enumerate(segments):
         path = 'chunk-%002d.wav' % (i,)

@@ -1,7 +1,9 @@
 import logging
 import time
-import wave
+import collections
 import socketserver
+import webrtcvad
+import audioop
 
 from homeassistant.components.light import Light
 
@@ -10,24 +12,74 @@ _LOGGER = logging.getLogger(__name__)
 def setup_platform(hass, config, add_devices, discovery_info=None):
     add_devices([Asr(hass)])
 
+class Frame(object):
+    def __init__(self, bytes, timestamp, duration):
+        self.bytes = bytes
+        self.timestamp = timestamp
+        self.duration = duration
+
 class AsrServer(socketserver.BaseRequestHandler):
 
     def handle(self):
-        print('AsrServer handling*******************************')
-        _buffer=b''
+        _LOGGER.info('AsrServer handling*******************************')
+        vad = webrtcvad.Vad(3)
+        frames = frame_generator(30, 16000)
+        segments = vad_collector(16000, 30, 300, vad, frames)
+        for i, segment in enumerate(segments):
+            print('--end')
+
+    def frame_generator(frame_duration_ms, sample_rate):
+        n = int(sample_rate * (frame_duration_ms / 1000.0) * 2)
+        offset = 0
+        timestamp = 0.0
+        duration = (float(n) / sample_rate) / 2.0
+        #buffer=b''
         while True:
-            data=self.request.recv(20000)
-            if data.strip():
-                _buffer=_buffer+data
-                if len(_buffer)>=20000:
-                    print(('AsrServer create file len %s*************************')%len(_buffer))
-                    dest=wave.open('asr'+time.strftime('%H%M%S', time.localtime())+'.wav', 'wb')
-                    dest.setnchannels(1)
-                    dest.setsampwidth(1)
-                    dest.setframerate(10000)
-                    dest.writeframes(_buffer[:20000])
-                    dest.close()
-                    _buffer=_buffer[20000:]
+            bytes=self.request.recv(n/2)
+            if bytes.strip():
+                bytes16=audioop.lin2lin(bytes, 1, 2)
+                bytes16k=audioop.ratecv(byte16, 2, 1, 10000, 16000, None)[0]
+                #buffer+=data
+                #if len(_buffer)>=n:
+                yield Frame(byte16k, timestamp, duration)
+                #buffer=buffer[n:]
+                timestamp += duration
+                offset += n
+
+    def vad_collector(sample_rate, frame_duration_ms,
+                  padding_duration_ms, vad, frames):
+        num_padding_frames = int(padding_duration_ms / frame_duration_ms)
+        ring_buffer = collections.deque(maxlen=num_padding_frames)
+        triggered = False
+        voiced_frames = []
+        for i, frame in enumerate(frames):
+            print(
+                '1' if vad.is_speech(frame.bytes, sample_rate) else '0')
+            if not triggered:
+                ring_buffer.append(frame)
+                num_voiced = len([f for f in ring_buffer
+                                  if vad.is_speech(f.bytes, sample_rate)])
+                if num_voiced > 0.9 * ring_buffer.maxlen:
+                    print('+(%s)' % (ring_buffer[0].timestamp,))
+                    triggered = True
+                    voiced_frames.extend(ring_buffer)
+                    ring_buffer.clear()
+            else:
+                voiced_frames.append(frame)
+                ring_buffer.append(frame)
+                num_unvoiced = len([f for f in ring_buffer
+                                    if not vad.is_speech(f.bytes, sample_rate)])
+                if num_unvoiced > 0.9 * ring_buffer.maxlen:
+                    print('-(%s)' % (frame.timestamp + frame.duration))
+                    triggered = False
+                    yield b''.join([f.bytes for f in voiced_frames])
+                    ring_buffer.clear()
+                    voiced_frames = []
+        if triggered:
+            print('-(%s)' % (frame.timestamp + frame.duration))
+        print('\n')
+        if voiced_frames:
+            yield b''.join([f.bytes for f in voiced_frames])
             
 class Asr(Light):
 

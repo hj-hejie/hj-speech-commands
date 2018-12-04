@@ -8,9 +8,7 @@ class RawAudioBuff(RawAudioFile):
 		self.buff=buff
 
 	def read_data(self):
-		for count in range(2):
-			print ('.'+str(count))
-			yield self.buff[count]
+		yield self.buff
 
 	def close(self):
 		pass

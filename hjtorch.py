@@ -7,7 +7,7 @@ from datasets import *
 import torch
 from torch.autograd import Variable
 from torch.nn.functional import softmax
-import transforms.librosa2 as lr
+#import transforms.librosa2 as lr
 
 transform = Compose([FixAudioLength(), ToMelSpectrogram(n_mels=40), ToTensor('mel_spectrogram', 'input')])
 
@@ -15,12 +15,13 @@ transform = Compose([FixAudioLength(), ToMelSpectrogram(n_mels=40), ToTensor('me
 #samples, sample_rate = librosa.load('datasets/speech_commands_origin/train/yes/a05a90c1_nohash_0.wav', None)
 #samples, sample_rate = librosa.load('hjwavkaikongtiao0.wav', None)
 #samples, sample_rate = librosa.load('datasets/speech_commands/train/kaidianshi/01.wav', None)
+samples, sample_rate = librosa.load('/home/hejie/workspace/pytorch-speech-commands/hass/asr001914wav', None)
 model = torch.load('1533806137984-vgg19_bn_sgd_plateau_bs100_lr1.0e-02_wd1.0e-02-best-acc.pth')
 #model = torch.load('hj-best-acc.pth')
 model.float()
 count=0
 if True:
-    samples, sample_rate=lr.loadfrombuff(None)
+    #samples, sample_rate=lr.loadfrombuff(None)
     data={}
     data['samples'] = samples
     data['sample_rate'] = sample_rate
