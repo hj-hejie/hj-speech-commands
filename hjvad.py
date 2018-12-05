@@ -90,7 +90,7 @@ def main(args):
     vad = webrtcvad.Vad(int(args[0]))
     '''
     #audio, sample_rate = read_wave('/home/hejie/workspace/pytorch-speech-commands/datasets/speech_commands/train/kaideng/01.wav')
-    audio, sample_rate = read_wave('hjwavtest09.wav')
+    audio, sample_rate = read_wave('hjwavtest10.wav')
     vad = webrtcvad.Vad(3)
     frames = frame_generator(30, audio, sample_rate)
     #frames = list(frames)

@@ -1,4 +1,5 @@
 import random
+import sys
 import numpy as np
 import wave
 from pyaudio import PyAudio,paInt16
@@ -39,9 +40,8 @@ def rewrite():
     orign=wave.open('hjwavtest07.wav')
     fms_byte=orign.readframes(orign.getnframes())
     orign.close()
-    dest=wave.open('hjwavtest08.wav', 'wb')
+    dest=wave.open('hjwavtest10.wav', 'wb')
     rebyte = audioop.lin2lin(fms_byte, 1, 2)
-    #resampbyte = librosa.resample(np.concatenate([rebyte]), 10000, 16000, res_type='kaiser_best')
     cvbyte=audioop.ratecv(rebyte, 2, 1, 10000, 16000, None)[0]
     pdb.set_trace()
     dest.setnchannels(1)
@@ -49,6 +49,25 @@ def rewrite():
     dest.setframerate(16000)
     dest.writeframes(cvbyte)
     dest.close()
+
+def rewrite2():
+    orign=wave.open('hjwavtest07.wav')
+    fms_byte=orign.readframes(orign.getnframes())
+    orign.close()
+    rebyte=librosa.util.buf_to_float(fms_byte, 1)
+    resamp = librosa.resample(np.concatenate([rebyte]), 10000, 16000, res_type='kaiser_best')
+    if sys.version_info[0] >= 4:
+        _bytes=resamp.ravel().view('b').data
+    else:
+        _bytes=resamp.tostring()
+    writed=audioop.lin2lin(_bytes, 4, 2)
+    pdb.set_trace()
+    wf=wave.open('hjwavtest08.wav', 'wb')
+    wf.setnchannels(1)
+    wf.setsampwidth(2)
+    wf.setframerate(16000)
+    wf.writeframes(writed)
+    wf.close()
 
 def mywrite():
     buf=[]
@@ -87,6 +106,7 @@ def conv2():
     newFilename = 'hjwavtest04.wav'
     y, sr = librosa.load(filename, sr=10000)
     y_8k = librosa.resample(y,sr,16000)
+    pdb.set_trace()
     librosa.output.write_wav(newFilename, y_8k, 16000)
 
 
@@ -111,6 +131,7 @@ def resample(input_signal,src_fs,tar_fs):
 if __name__ == '__main__':
     #my_record()
     rewrite()
+    #rewrite2()
     #mywrite()
     #conv()
     #conv2()
