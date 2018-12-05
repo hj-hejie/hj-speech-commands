@@ -37,10 +37,10 @@ def my_record():
     stream.close()
 
 def rewrite():
-    orign=wave.open('hjwavtest07.wav')
+    orign=wave.open('hjwavtest11.wav')
     fms_byte=orign.readframes(orign.getnframes())
     orign.close()
-    dest=wave.open('hjwavtest10.wav', 'wb')
+    dest=wave.open('hjwavtest12.wav', 'wb')
     rebyte = audioop.lin2lin(fms_byte, 1, 2)
     cvbyte=audioop.ratecv(rebyte, 2, 1, 10000, 16000, None)[0]
     pdb.set_trace()
@@ -85,19 +85,21 @@ def mywrite():
     dest.close()
 
 def conv():
-    s_read = wave.open('hjwavtest03.wav', 'r')
-    s_write = wave.open('hjwavtest04.wav', 'w')
+    s_read = wave.open('datasets/speech_commands/train/kaidianshi/01.wav', 'r')
+    s_write = wave.open('hjwavtest11.wav', 'w')
     n_frames = s_read.getnframes()
     data = s_read.readframes(n_frames)
     in_channels=1
-    in_width=1
-    in_rate=10000
+    in_width=2
+    in_rate=16000
     out_channels=1
     out_width=1
-    out_rate=16000
-    converted = audioop.ratecv(data, in_width, in_channels, in_rate, out_rate, None)
+    out_rate=10000
+    rebyte = audioop.lin2lin(data, in_width, out_width)
+    rerate = audioop.ratecv(rebyte, out_width, in_channels, in_rate, out_rate, None)
+    pdb.set_trace()
     s_write.setparams((out_channels, out_width, out_rate, 0, 'NONE', 'Uncompressed'))
-    s_write.writeframes(converted[0])
+    s_write.writeframes(rerate[0])
     s_read.close()
     s_write.close()
 
