@@ -15,7 +15,7 @@ transform = Compose([FixAudioLength(), ToMelSpectrogram(n_mels=40), ToTensor('me
 #samples, sample_rate = librosa.load('datasets/speech_commands_origin/train/yes/a05a90c1_nohash_0.wav', None)
 #samples, sample_rate = librosa.load('hjwavkaikongtiao0.wav', None)
 #samples, sample_rate = librosa.load('datasets/speech_commands/train/kaidianshi/01.wav', None)
-samples, sample_rate = librosa.load('hjwavtest12.wav', None)
+samples, sample_rate = librosa.load('hjwavtest13.wav', None)
 model = torch.load('1533806137984-vgg19_bn_sgd_plateau_bs100_lr1.0e-02_wd1.0e-02-best-acc.pth')
 #model = torch.load('hj-best-acc.pth')
 model.float()

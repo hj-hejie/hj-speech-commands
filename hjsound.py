@@ -51,7 +51,7 @@ def rewrite():
     dest.close()
 
 def rewrite2():
-    orign=wave.open('hjwavtest07.wav')
+    orign=wave.open('hjwavtest11.wav')
     fms_byte=orign.readframes(orign.getnframes())
     orign.close()
     rebyte=librosa.util.buf_to_float(fms_byte, 1)
@@ -62,7 +62,7 @@ def rewrite2():
         _bytes=resamp.tostring()
     writed=audioop.lin2lin(_bytes, 4, 2)
     pdb.set_trace()
-    wf=wave.open('hjwavtest08.wav', 'wb')
+    wf=wave.open('hjwavtest13.wav', 'wb')
     wf.setnchannels(1)
     wf.setsampwidth(2)
     wf.setframerate(16000)
@@ -132,8 +132,8 @@ def resample(input_signal,src_fs,tar_fs):
 
 if __name__ == '__main__':
     #my_record()
-    rewrite()
-    #rewrite2()
+    #rewrite()
+    rewrite2()
     #mywrite()
     #conv()
     #conv2()
