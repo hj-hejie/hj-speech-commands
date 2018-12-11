@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 from librosa import *
 import numpy as np
-import audioread2
-import buffread
+from . import audioread2
+from . import buffread
 
 def loadfrom(sr=16000, mono=True, offset=0.0, duration=None,
          dtype=np.float32, res_type='kaiser_best', inputsource=None):

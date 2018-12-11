@@ -34,7 +34,7 @@ class LoadAudio(object):
 class FixAudioLength(object):
     """Either pads or truncates an audio into a fixed length."""
 
-    def __init__(self, time=2):
+    def __init__(self, time=1):
         self.time = time
 
     def __call__(self, data):
