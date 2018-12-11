@@ -24,13 +24,15 @@ parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.A
 parser.add_argument("--dataset-dir", type=str, default='datasets/speech_commands/test', help='path of test dataset')
 parser.add_argument("--batch-size", type=int, default=128, help='batch size')
 parser.add_argument("--dataload-workers-nums", type=int, default=3, help='number of workers for dataloader')
-parser.add_argument("--input", choices=['mel32'], default='mel32', help='input of NN')
+parser.add_argument("--input", choices=['mel32'], default='mel40', help='input of NN')
 parser.add_argument('--multi-crop', action='store_true', help='apply crop and average the results')
 parser.add_argument('--generate-kaggle-submission', action='store_true', help='generate kaggle submission file')
 parser.add_argument("--kaggle-dataset-dir", type=str, default='datasets/speech_commands/kaggle', help='path of kaggle test dataset')
 parser.add_argument('--output', type=str, default='', help='save output to file for the kaggle competition, if empty the model name will be used')
 #parser.add_argument('--prob-output', type=str, help='save probabilities to file', default='probabilities.json')
 parser.add_argument("model", help='a pretrained neural network model')
+parser.add_argument('--sample-rate', type=int, default=10000)
+parser.add_argument('--sample-time', type=float, default=2.0)
 args = parser.parse_args()
 
 dataset_dir = args.dataset_dir
@@ -52,7 +54,7 @@ if args.input == 'mel40':
     n_mels = 40
 
 feature_transform = Compose([ToMelSpectrogram(n_mels=n_mels), ToTensor('mel_spectrogram', 'input')])
-transform = Compose([LoadAudio(), FixAudioLength(), feature_transform])
+transform = Compose([LoadAudio(sample_rate=args.sample_rate), FixAudioLength(time=args.sample_time), feature_transform])
 test_dataset = SpeechCommandsDataset(dataset_dir, transform, silence_percentage=0)
 test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size, sampler=None,
                             pin_memory=use_gpu, num_workers=args.dataload_workers_nums)
