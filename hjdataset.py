@@ -44,15 +44,33 @@ def createlinkdataset():
         for dir3 in os.listdir(dir2):
             dir4=os.path.join(dir2, dir3)
             if dir3 != '_background_noise_':
-                for file in os.listdir(dir4):
-                    for i in range(2000):
-                        print(os.path.join('.', file)+'-->'+os.path.join(dir4, 's'+str(i)+file))
-                        os.symlink(os.path.join('.', file), os.path.join(dir4, 's'+str(i)+file))
+                for j, file in enumerate(os.listdir(dir4)):
+                    if j is 0:
+                        for i in range(2000):
+                            #print(j, os.path.join(os.path.realpath(dir4), file)+'-->'+os.path.join(os.path.realpath(dir4), 's'+str(i)+file))
+                            os.symlink(os.path.join(os.path.realpath(dir4), file), os.path.join(os.path.realpath(dir4), 's'+str(i)+file))
 
 def builddataset():
     for classdir in set(os.listdir(dsdir))-set(['silence16hz', 'test']):
-        print('%s'%classdir)
-        
+        classfulldir=os.path.join(dsdir, classdir)
+        wavs=os.listdir(classfulldir)
+        for i, wav in enumerate(wavs):
+            wavfulldir=os.path.join(classfulldir, wav)
+            if i%3 is 0 or classdir == '_background_noise_':
+                totypefulldir=os.path.join(todsdir, 'train')
+            elif i%3 is 1:
+                totypefulldir=os.path.join(todsdir, 'test')
+            else:
+                totypefulldir=os.path.join(todsdir, 'valid')
+            if not os.path.exists(totypefulldir):
+               os.mkdir(totypefulldir) 
+            tofulldir=os.path.join(totypefulldir, classdir)
+            if not os.path.exists(tofulldir):
+               os.mkdir(tofulldir) 
+            towavfulldir=os.path.join(tofulldir, wav)
+            print(wavfulldir,'->',towavfulldir)
+            shutil.copyfile(wavfulldir,towavfulldir)
 
 if __name__=='__main__':
-    builddataset()
+    #builddataset()
+    createlinkdataset()
