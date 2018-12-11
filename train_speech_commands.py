@@ -40,7 +40,7 @@ parser.add_argument("--lr-scheduler-gamma", type=float, default=0.1, help='learn
 parser.add_argument("--max-epochs", type=int, default=70, help='max number of epochs')
 parser.add_argument("--resume", type=str, help='checkpoint file to resume')
 parser.add_argument("--model", choices=models.available_models, default=models.available_models[0], help='model of NN')
-parser.add_argument("--input", choices=['mel32'], default='mel32', help='input of NN')
+parser.add_argument("--input", choices=['mel32'], default='mel30', help='input of NN')
 parser.add_argument('--mixup', action='store_true', help='use mixup')
 parser.add_argument('--sample-rate', type=int, default=10000)
 parser.add_argument('--sample-time', type=float, default=2.0)
