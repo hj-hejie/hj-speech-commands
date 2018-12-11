@@ -2,10 +2,13 @@
 
 import os
 import shutil
+import pdb
+import contextlib
+import wave
 
 dsdir='datasets/speech_commands_esp/'
 
-todsdir='datasets/speech_commands/'
+todsdir='datasets/speech_commands_esp_vad/'
 if not os.path.exists(todsdir):os.mkdir(todsdir)
 
 totraindir=todsdir+'train/'
@@ -71,6 +74,49 @@ def builddataset():
             print(wavfulldir,'->',towavfulldir)
             shutil.copyfile(wavfulldir,towavfulldir)
 
+def buildvaddataset():
+    for classdir in set(os.listdir(dsdir))-set(['silence16hz', 'test']):
+        classfulldir=os.path.join(dsdir, classdir)
+        wavs=os.listdir(classfulldir)
+        for i, wav in enumerate(wavs):
+            wavfulldir=os.path.join(classfulldir, wav)
+            if i%3 is 0 or classdir == '_background_noise_':
+                totypefulldir=os.path.join(todsdir, 'train')
+            elif i%3 is 1:
+                totypefulldir=os.path.join(todsdir, 'test')
+            else:
+                totypefulldir=os.path.join(todsdir, 'valid')
+            if not os.path.exists(totypefulldir):
+               os.mkdir(totypefulldir)
+            if classdir == '_background_noise_':
+                tofulldir=os.path.join(totypefulldir, '_background_noise_')
+            else:
+                tofulldir=os.path.join(totypefulldir, 'speech')
+            if not os.path.exists(tofulldir):
+               os.mkdir(tofulldir)
+            for k, frame in enumerate(read_frames(wavfulldir)):
+                towavfulldir=os.path.join(tofulldir, str(k)+'chunk'+wav)
+                write_wave(towavfulldir, frame)
+
+def read_frames(path, duration_time=0.02, range_time=0.5):
+    _range=int(10000*range_time)
+    duration=int(10000*duration_time)
+    with contextlib.closing(wave.open(path, 'rb')) as wf:
+        pcm_data = wf.readframes(wf.getnframes())
+        pcm_data_ranged = pcm_data[_range : -_range]
+        for i in range(0, len(pcm_data_ranged), duration):
+            yield pcm_data_ranged[i: i+duration];
+
+
+def write_wave(path, frames):
+    with contextlib.closing(wave.open(path, 'wb')) as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(1)
+        wf.setframerate(10000)
+        wf.writeframes(frames)
+
+
 if __name__=='__main__':
     #builddataset()
-    createlinkdataset()
+    #createlinkdataset()
+    buildvaddataset()
