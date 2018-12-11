@@ -6,7 +6,6 @@ __pycache__
 pretrained/
 runs/
 hjwav*
-datasets/speech_commands/
-datasets/speech_commands_origin/
 hass/*.json
-datasets/speech_commands/split_dataset.py
+testwav/
+datasets/speech_commands*
