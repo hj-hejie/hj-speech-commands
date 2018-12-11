@@ -47,7 +47,7 @@ parser.add_argument('--sample-time', type=float, default=2.0)
 args = parser.parse_args()
 
 #CLASSES = 'unknown, silence, guandianshi, guankongtiao, kaidianshi, kaikongtiao'.split(', ')
-CLASSES = 'speech'.split(', ')
+CLASSES = 'unknown, speech'.split(', ')
 
 use_gpu = torch.cuda.is_available()
 print('use_gpu', use_gpu)
