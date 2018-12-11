@@ -9,7 +9,7 @@ from torch.autograd import Variable
 from torch.nn.functional import softmax
 #import transforms.librosa2 as lr
 
-transform = Compose([FixAudioLength(time=1), ToMelSpectrogram(n_mels=40), ToTensor('mel_spectrogram', 'input')])
+transform = Compose([FixAudioLength(time=2), ToMelSpectrogram(n_mels=40), ToTensor('mel_spectrogram', 'input')])
 
 #samples, sample_rate = librosa.load('datasets/speech_commands_origin/train/no/a05a90c1_nohash_2.wav', None)
 #samples, sample_rate = librosa.load('datasets/speech_commands_origin/train/yes/a05a90c1_nohash_0.wav', None)
