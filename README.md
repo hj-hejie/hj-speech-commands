@@ -23,3 +23,5 @@ Traceback (most recent call last):
   File "/home/hejie/.local/lib/python3.6/site-packages/torch/nn/functional.py", line 396, in max_pool2d
     ret = torch._C._nn.max_pool2d_with_indices(input, kernel_size, stride, padding, dilation, ceil_mode)
 RuntimeError: Given input size: (64x32x1). Calculated output size: (64x16x0). Output size is too small at /pytorch/aten/src/THNN/generic/SpatialDilatedMaxPooling.c:67
+
+((1+2*0-1*(2-1)-1+0)/2+1)=0.5
