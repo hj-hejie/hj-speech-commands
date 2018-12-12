@@ -25,3 +25,5 @@ Traceback (most recent call last):
 RuntimeError: Given input size: (64x32x1). Calculated output size: (64x16x0). Output size is too small at /pytorch/aten/src/THNN/generic/SpatialDilatedMaxPooling.c:67
 
 ((1+2*0-1*(2-1)-1+0)/2+1)=0.5
+
+T outputSize = ((inputSize + 2 * pad - dilation * (kernelSize - 1) - 1 + (ceil_mode ? stride - 1 : 0)) / stride + 1);
