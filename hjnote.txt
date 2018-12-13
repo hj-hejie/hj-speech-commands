@@ -94,3 +94,10 @@ qemu-system-arm -m 2048M -M vexpress-a15 -cpu cortex-a15 -kernel ./kernel-qemu-4
 
 
 python3.5/site-packages/torch/serialization.py:472:unpickler = pickle_module.Unpickler(f, encoding='utf8')
+
+
+https://perso.aquilenet.fr/~sven337/english/2016/07/14/DIY-wifi-baby-monitor.html
+https://github.com/hjltu/esp8266-wifi-microphone.git
+https://github.com/benjaminzhao/ESP8266_AD7705_DEMO
+https://www.esp8266.com/
+

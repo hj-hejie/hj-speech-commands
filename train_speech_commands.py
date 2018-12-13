@@ -44,10 +44,11 @@ parser.add_argument("--input", choices=['mel32'], default='mel30', help='input o
 parser.add_argument('--mixup', action='store_true', help='use mixup')
 parser.add_argument('--sample-rate', type=int, default=10000)
 parser.add_argument('--sample-time', type=float, default=2.0)
+parser.add_argument('--n-fft', type=int, default=60)
+parser.add_argument('--hop-length', type=int, default=5)
+#parser.add_argument('--n-fft', type=int, default=2048)
+#parser.add_argument('--hop-length', type=int, default=512)
 args = parser.parse_args()
-
-#CLASSES = 'unknown, silence, guandianshi, guankongtiao, kaidianshi, kaikongtiao'.split(', ')
-CLASSES = 'unknown, speech'.split(', ')
 
 use_gpu = torch.cuda.is_available()
 print('use_gpu', use_gpu)
@@ -58,7 +59,7 @@ n_mels = 32
 if args.input == 'mel40':
     n_mels = 40
 
-data_aug_transform = Compose([ChangeAmplitude(), ChangeSpeedAndPitchAudio(), FixAudioLength(time=args.sample_time), ToSTFT(), StretchAudioOnSTFT(), TimeshiftAudioOnSTFT(), FixSTFTDimension()])
+data_aug_transform = Compose([ChangeAmplitude(), ChangeSpeedAndPitchAudio(), FixAudioLength(time=args.sample_time), ToSTFT(n_fft=args.n_fft, hop_length=args.hop_length), StretchAudioOnSTFT(), TimeshiftAudioOnSTFT(), FixSTFTDimension()])
 bg_dataset = BackgroundNoiseDataset(args.background_noise, data_aug_transform, sample_length=args.sample_time, sample_rate=args.sample_rate)
 add_bg_noise = AddBackgroundNoiseOnSTFT(bg_dataset)
 train_feature_transform = Compose([ToMelSpectrogramFromSTFT(n_mels=n_mels), DeleteSTFT(), ToTensor('mel_spectrogram', 'input')])
@@ -68,7 +69,7 @@ train_dataset = SpeechCommandsDataset(args.train_dataset,
                                          add_bg_noise,
                                          train_feature_transform]))
 
-valid_feature_transform = Compose([ToMelSpectrogram(n_mels=n_mels), ToTensor('mel_spectrogram', 'input')])
+valid_feature_transform = Compose([ToMelSpectrogram(n_mels=n_mels, n_fft=args.n_fft, hop_length=args.hop_length), ToTensor('mel_spectrogram', 'input')])
 valid_dataset = SpeechCommandsDataset(args.valid_dataset,
                                 Compose([LoadAudio(sample_rate=args.sample_rate),
                                          FixAudioLength(time=args.sample_time),

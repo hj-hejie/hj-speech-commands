@@ -131,13 +131,15 @@ class AddBackgroundNoise(Dataset):
 class ToMelSpectrogram(object):
     """Creates the mel spectrogram from an audio. The result is a 32x32 matrix."""
 
-    def __init__(self, n_mels=32):
+    def __init__(self, n_mels=32, n_fft=2048, hop_length=512):
         self.n_mels = n_mels
+        self.n_fft = n_fft
+        self.hop_length = hop_length
 
     def __call__(self, data):
         samples = data['samples']
         sample_rate = data['sample_rate']
-        s = librosa.feature.melspectrogram(samples, sr=sample_rate, n_mels=self.n_mels)
+        s = librosa.feature.melspectrogram(samples, sr=sample_rate, n_mels=self.n_mels, n_fft=self.n_fft, hop_length=self.hop_length)
         data['mel_spectrogram'] = librosa.power_to_db(s, ref=np.max)
         return data
 
