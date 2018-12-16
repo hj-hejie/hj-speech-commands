@@ -3,6 +3,7 @@ import time
 import contextlib
 import wave
 import socketserver
+import audioop
 
 logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
@@ -12,22 +13,27 @@ class AsrServer(socketserver.BaseRequestHandler):
     def handle(self):
         _LOGGER.info('AsrServer handling*******************************')
         _buffer=b''
+        sample_rate=10000
+        sample_width=1
+        target_rate=10000
+        target_width=1
+        _len=sample_rate*2
         while True:
-            data=self.request.recv(20000)
+            data=self.request.recv(_len)
             if data.strip():
                 _buffer=_buffer+data
                 _bufflen=len(_buffer)
-                if _bufflen>=20000:
-                    wavfile='asr%s.wav'%time.strftime('%Y%m%d%H%M%S', time.localtime())
+                if _bufflen>=_len:
+                    wavfile='silence/%s.wav'%time.strftime('%Y%m%d%H%M%S', time.localtime())
                     _LOGGER.info(('AsrServer create file %s len %s*************************')%(wavfile, _bufflen))
-                    with contextlib.closing(wave.open(wavfile, 'wb')) as wf
-                        bytes16=audioop.lin2lin(_buffer[:20000], 1, 2)
-                        bytes16k=audioop.ratecv(byte16, 2, 1, 10000, 16000, None)[0]
+                    with contextlib.closing(wave.open(wavfile, 'wb')) as wf:
+                        #bytes16=audioop.lin2lin(_buffer[:_len], sample_width, target_width)
+                        #bytes16k=audioop.ratecv(bytes16, target_width, 1, sample_rate, target_rate, None)[0]
                         wf.setnchannels(1)
-                        wf.setsampwidth(2)
-                        wf.setframerate(16000)
-                        wf.writeframes(bytes16k)
-                    _buffer=_buffer[20000:]
+                        wf.setsampwidth(target_width)
+                        wf.setframerate(target_rate)
+                        wf.writeframes(_buffer[:_len])
+                    _buffer=_buffer[_len:]
             
 if __name__ == '__main__': 
     server = socketserver.ThreadingTCPServer(('hejie-ThinkPad-L450.local',8009),AsrServer)

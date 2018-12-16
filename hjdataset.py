@@ -8,7 +8,7 @@ import wave
 
 dsdir='datasets/speech_commands_esp/'
 
-todsdir='datasets/speech_commands_esp_vad/'
+todsdir='datasets/speech_commands/'
 if not os.path.exists(todsdir):os.mkdir(todsdir)
 
 totraindir=todsdir+'train/'
@@ -48,8 +48,8 @@ def createlinkdataset():
             dir4=os.path.join(dir2, dir3)
             if dir3 != '_background_noise_':
                 for j, file in enumerate(os.listdir(dir4)):
-                    if j is 0:
-                        for i in range(2000):
+                    #if j is 0:
+                        for i in range(10):
                             #print(j, os.path.join(os.path.realpath(dir4), file)+'-->'+os.path.join(os.path.realpath(dir4), 's'+str(i)+file))
                             os.symlink(os.path.join(os.path.realpath(dir4), file), os.path.join(os.path.realpath(dir4), 's'+str(i)+file))
 
@@ -118,5 +118,5 @@ def write_wave(path, frames):
 
 if __name__=='__main__':
     #builddataset()
-    #createlinkdataset()
-    buildvaddataset()
+    createlinkdataset()
+    #buildvaddataset()

@@ -1,42 +1,49 @@
 import logging
+import sys
 import time
+import numpy as np
 import collections
 import socketserver
-import webrtcvad
+#import webrtcvad
 import audioop
 import torch
 from torch.autograd import Variable
 import transforms.librosa2 as lr
-
+#import wave
+#import contextlib
+import pdb
+from torchvision.transforms import *
+from transforms import *
+from torch.nn.functional import softmax
+from torch.autograd import Variable
 from homeassistant.components.light import Light
+import hjvad
 
 _LOGGER = logging.getLogger(__name__)
 
-transform = Compose([FixAudioLength(), ToMelSpectrogram(n_mels=40), ToTensor('mel_spectrogram', 'input')])
-model = torch.load('hj-best-acc.pth')
+transform = Compose([FixAudioLength(time=2), ToMelSpectrogram(n_mels=40), ToTensor('mel_spectrogram', 'input')])
+model = torch.load('1533806137984-vgg19_bn_sgd_plateau_bs100_lr1.0e-02_wd1.0e-02-best-acc.pth')
 model.float()
+vad = hjvad.Nnvad()
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
     add_devices([Asr(hass)])
-
-class Frame(object):
-    def __init__(self, bytes, timestamp, duration):
-        self.bytes = bytes
-        self.timestamp = timestamp
-        self.duration = duration
 
 class AsrServer(socketserver.BaseRequestHandler):
 
     def handle(self):
         _LOGGER.info('AsrServer handling*******************************')
-        vad = webrtcvad.Vad(3)
-        frames = frame_generator(30, 16000)
-        segments = vad_collector(16000, 30, 300, vad, frames)
+        frames = hjvad.socket_frame_generator(self.request)
+        segments = hjvad.vad_collector(vad, frames)
         for i, segment in enumerate(segments):
-            lsamples, sample_rate=r.loadfrombuff(segment)
-            data={}
-            data['samples'] = samples
-            data['sample_rate'] = sample_rate
+            print('--end')
+            '''
+            print('Asr segment getted**********************')
+            samples, sample_rate=lr.loadfrombuff(segment.bytes, 10000, 1)
+            data={
+                'samples' : samples
+                'sample_rate' : sample_rate
+            }
             rs=transform(data)
             _in=rs['input'].unsqueeze(0)
             _in=torch.unsqueeze(_in, 1)
@@ -48,59 +55,7 @@ class AsrServer(socketserver.BaseRequestHandler):
             from datasets import CLASSES as _CLASS
             print(torch.max(out))
             print(_CLASS[torch.argmax(out)])
-
-    def frame_generator(frame_duration_ms, sample_rate):
-        n = int(sample_rate * (frame_duration_ms / 1000.0) * 2)
-        offset = 0
-        timestamp = 0.0
-        duration = (float(n) / sample_rate) / 2.0
-        #buffer=b''
-        while True:
-            bytes=self.request.recv(n/2)
-            if bytes.strip():
-                bytes16=audioop.lin2lin(bytes, 1, 2)
-                bytes16k=audioop.ratecv(byte16, 2, 1, 10000, 16000, None)[0]
-                #buffer+=data
-                #if len(_buffer)>=n:
-                yield Frame(byte16k, timestamp, duration)
-                #buffer=buffer[n:]
-                timestamp += duration
-                offset += n
-
-    def vad_collector(sample_rate, frame_duration_ms,
-                  padding_duration_ms, vad, frames):
-        num_padding_frames = int(padding_duration_ms / frame_duration_ms)
-        ring_buffer = collections.deque(maxlen=num_padding_frames)
-        triggered = False
-        voiced_frames = []
-        for i, frame in enumerate(frames):
-            print(
-                '1' if vad.is_speech(frame.bytes, sample_rate) else '0')
-            if not triggered:
-                ring_buffer.append(frame)
-                num_voiced = len([f for f in ring_buffer
-                                  if vad.is_speech(f.bytes, sample_rate)])
-                if num_voiced > 0.9 * ring_buffer.maxlen:
-                    print('+(%s)' % (ring_buffer[0].timestamp,))
-                    triggered = True
-                    voiced_frames.extend(ring_buffer)
-                    ring_buffer.clear()
-            else:
-                voiced_frames.append(frame)
-                ring_buffer.append(frame)
-                num_unvoiced = len([f for f in ring_buffer
-                                    if not vad.is_speech(f.bytes, sample_rate)])
-                if num_unvoiced > 0.9 * ring_buffer.maxlen:
-                    print('-(%s)' % (frame.timestamp + frame.duration))
-                    triggered = False
-                    yield b''.join([f.bytes for f in voiced_frames])
-                    ring_buffer.clear()
-                    voiced_frames = []
-        if triggered:
-            print('-(%s)' % (frame.timestamp + frame.duration))
-        print('\n')
-        if voiced_frames:
-            yield b''.join([f.bytes for f in voiced_frames])
+            '''
             
 class Asr(Light):
 
@@ -130,5 +85,7 @@ class Asr(Light):
         self._state=False
 
 if __name__ == '__main__': 
+    print('hejiestart')
     server = socketserver.ThreadingTCPServer(('hejie-ThinkPad-L450.local',8009),AsrServer)
     server.serve_forever()
+    print('hejieok')

@@ -11,8 +11,9 @@ from torch.utils.data import Dataset
 __all__ = [ 'CLASSES', 'SpeechCommandsDataset', 'BackgroundNoiseDataset' ]
 
 #CLASSES = 'unknown, silence, yes, no, up, down, left, right, on, off, stop, go'.split(', ')
-#CLASSES = 'unknown, silence, guandianshi, guankongtiao, kaidianshi, kaikongtiao'.split(', ')
-CLASSES = 'silence, speech'.split(', ')
+CLASSES1 = 'unknown, silence, guandianshi, guankongtiao, kaidianshi, kaikongtiao'.split(', ')
+CLASSES2 = 'silence, speech'.split(', ')
+CLASSES = CLASSES2
 
 class SpeechCommandsDataset(Dataset):
     """Google speech commands dataset. Only 'yes', 'no', 'up', 'down', 'left',

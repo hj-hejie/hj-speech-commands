@@ -69,5 +69,5 @@ def loadfrom(sr=16000, mono=True, offset=0.0, duration=None,
 def loadfrommic():
     return loadfrom(inputsource=audioread2.RawAudioMic())
 
-def loadfrombuff(buff):
-    return loadfrom(inputsource=buffread.RawAudioBuff(buff))
+def loadfrombuff(buff, sample_rate, sample_width):
+    return loadfrom(inputsource = buffread.RawAudioBuff(buff, sample_rate = sample_rate, sample_width = sample_width))

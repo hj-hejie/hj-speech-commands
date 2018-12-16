@@ -37,12 +37,12 @@ def my_record():
     stream.close()
 
 def rewrite():
-    orign=wave.open('hjwavtest11.wav')
+    orign=wave.open('hass/asr20181208231910.wav')
     fms_byte=orign.readframes(orign.getnframes())
     orign.close()
     dest=wave.open('hjwavtest12.wav', 'wb')
     rebyte = audioop.lin2lin(fms_byte, 1, 2)
-    cvbyte=audioop.ratecv(rebyte, 2, 1, 10000, 16000, None)[0]
+    cvbyte=audioop.ratecv(rebyte, 2, 1, 8000, 16000, None)[0]
     pdb.set_trace()
     dest.setnchannels(1)
     dest.setsampwidth(2)
@@ -132,8 +132,8 @@ def resample(input_signal,src_fs,tar_fs):
 
 if __name__ == '__main__':
     #my_record()
-    #rewrite()
-    rewrite2()
+    rewrite()
+    #rewrite2()
     #mywrite()
     #conv()
     #conv2()

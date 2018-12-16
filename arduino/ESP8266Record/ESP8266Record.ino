@@ -13,9 +13,11 @@ void setup()
     Serial.println("Asr server connected");
     bs.http.on("/record",[](){
       Serial.println("ESP8266AsrRecord recording........");
-      for(int i=0;i<20000;i++)
-      {
-        str_payload += char(analogRead(A0)/4);
+      for(int j=0; j<2; j++){
+        for(int i=0;i<10000;i++)
+        {
+          str_payload += char(analogRead(A0)/4);
+        }
       }
       client.print(str_payload);
       Serial.println("ESP8266AsrRecord recorded");
