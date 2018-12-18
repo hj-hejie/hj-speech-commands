@@ -13,24 +13,12 @@ from transforms import *
 #import webrtcvad
 from datasets import CLASSES as _CLASS
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--sample-rate', type=int, default=10000)
-parser.add_argument('--sample-width', type=int, default=1)
-parser.add_argument('--sample-time', type=float, default=0.02)
-parser.add_argument('--n-mels', type=int, default=32)
-parser.add_argument('--n-fft', type=int, default=80)
-parser.add_argument('--hop-length', type=int, default=10)
-parser.add_argument('--model', type=str, default='1544897548406-vgg19_bn_sgd_plateau_bs96_lr1.0e-02_wd1.0e-02-best-acc.pth')
-parser.add_argument('--frame-duration-ms', type=float, default=20)
-parser.add_argument('--padding-duration-ms', type=float, default=200)
-args = parser.parse_args()
- 
 class Nnvad(object):
-    def __init__(self, sample_time = args.sample_time, n_mels = args.n_mels):
+    def __init__(self, sample_time = 0.02, n_mels = 32, n_fft=80, hop_length=10):
         self.transform = Compose([FixAudioLength(time = sample_time),
-                                  ToMelSpectrogram(n_mels = n_mels, n_fft=args.n_fft, hop_length=args.hop_length),
+                                  ToMelSpectrogram(n_mels = n_mels, n_fft=n_fft, hop_length=hop_length),
                                   ToTensor('mel_spectrogram', 'input')])
-        self.model = torch.load(args.model)
+        self.model = torch.load('1544897548406-vgg19_bn_sgd_plateau_bs96_lr1.0e-02_wd1.0e-02-best-acc.pth.vad')
         self.model.float()
 
     def is_speech(self, bytes, sample_rate, sample_width):
@@ -53,11 +41,11 @@ def read_wave(path):
         return pcm_data, sample_rate
  
  
-def write_wave(path, audio):
+def write_wave(path, audioi, sample_width, sample_rate):
     with contextlib.closing(wave.open(path, 'wb')) as wf:
         wf.setnchannels(1)
-        wf.setsampwidth(args.sample_width)
-        wf.setframerate(args.sample_rate)
+        wf.setsampwidth(sample_width)
+        wf.setframerate(sample_rate)
         wf.writeframes(audio)
  
  
@@ -68,8 +56,8 @@ class Frame(object):
         self.duration = duration
  
  
-def frame_generator(audio, frame_duration_ms = args.frame_duration_ms,
-                    sample_rate = args.sample_rate, sample_width = args.sample_width):
+def frame_generator(audio, frame_duration_ms,
+                    sample_rate, sample_width):
     n = int(sample_rate * (frame_duration_ms / 1000.0) * sample_width)
     offset = 0
     timestamp = 0.0
@@ -79,8 +67,8 @@ def frame_generator(audio, frame_duration_ms = args.frame_duration_ms,
         timestamp += duration
         offset += n
  
-def socket_frame_generator(request, frame_duration_ms = args.frame_duration_ms,
-                    sample_rate = args.sample_rate, sample_width = args.sample_width):
+def socket_frame_generator(request, frame_duration_ms = 20,
+                    sample_rate = 10000, sample_width = 1):
     n = int(sample_rate * (frame_duration_ms / 1000.0) * sample_width)
     offset = 0
     timestamp = 0.0
@@ -98,9 +86,9 @@ def socket_frame_generator(request, frame_duration_ms = args.frame_duration_ms,
                 offset += n * width
  
 def vad_collector(vad, frames,
-                  sample_rate = args.sample_rate, sample_width = args.sample_width,
-                  frame_duration_ms = args.frame_duration_ms,
-                  padding_duration_ms = args.padding_duration_ms):
+                  sample_rate, sample_width,
+                  frame_duration_ms,
+                  padding_duration_ms):
     num_padding_frames = int(padding_duration_ms / frame_duration_ms)
     ring_buffer = collections.deque(maxlen=num_padding_frames)
     triggered = False
@@ -148,12 +136,12 @@ def main(args):
     audio, _sample_rate = read_wave('datasets/speech_commands_esp/kaideng/20181209192108.wav')
     #vad = webrtcvad.Vad(2)
     vad = Nnvad()
-    frames = frame_generator(audio)
-    segments = vad_collector(vad, frames)
+    frames = frame_generator(audio, 20, 1, 10000)
+    segments = vad_collector(vad, framesi, 10000, 1, 20, 200)
     for i, segment in enumerate(segments):
         path = 'chunk-%002d.wav' % (i,)
         #print('--end')
-        write_wave(path, segment)
+        write_wave(path, segment, 1, 10000)
  
  
 if __name__ == '__main__':
