@@ -48,9 +48,9 @@ def createlinkdataset():
             dir4=os.path.join(dir2, dir3)
             if dir3 != '_background_noise_':
                 for j, file in enumerate(os.listdir(dir4)):
-                    #if j is 0:
-                        for i in range(10):
-                            #print(j, os.path.join(os.path.realpath(dir4), file)+'-->'+os.path.join(os.path.realpath(dir4), 's'+str(i)+file))
+                    if j is 0:
+                        for i in range(2000):
+                            print(j, os.path.join(os.path.realpath(dir4), file)+'-->'+os.path.join(os.path.realpath(dir4), 's'+str(i)+file))
                             os.symlink(os.path.join(os.path.realpath(dir4), file), os.path.join(os.path.realpath(dir4), 's'+str(i)+file))
 
 def builddataset():
