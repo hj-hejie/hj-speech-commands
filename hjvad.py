@@ -41,7 +41,7 @@ def read_wave(path):
         return pcm_data, sample_rate
  
  
-def write_wave(path, audioi, sample_width, sample_rate):
+def write_wave(path, audio, sample_width, sample_rate):
     with contextlib.closing(wave.open(path, 'wb')) as wf:
         wf.setnchannels(1)
         wf.setsampwidth(sample_width)

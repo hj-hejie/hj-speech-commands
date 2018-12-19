@@ -46,6 +46,8 @@ class AsrServer(socketserver.BaseRequestHandler):
         segments = hjvad.vad_collector(vad, frames)
         for i, segment in enumerate(segments):
             print('--end')
+            path = 'chunk-%002d.wav' % (i,)
+            hjvad.write_wave(path, segment, 1, 10000)
             '''
             print('Asr segment getted**********************')
             samples, sample_rate=lr.loadfrombuff(segment.bytes, 10000, 1)
