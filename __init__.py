@@ -2,24 +2,21 @@ import pdb
 import logging
 import os
 import sys
-sys.path.append(os.getcwd())
 import time
 import numpy as np
 import collections
 import socketserver
-#import webrtcvad
 import audioop
 import torch
 from torch.autograd import Variable
-import transforms.librosa2 as lr
-#import wave
-#import contextlib
 from torchvision.transforms import *
-from transforms import *
 from torch.nn.functional import softmax
 from torch.autograd import Variable
-import hjvad
 from homeassistant.const import EVENT_HOMEASSISTANT_START
+sys.path.append(os.getcwd())
+import transforms.librosa2 as lr
+from transforms import *
+import hjvad
 
 _LOGGER = logging.getLogger(__name__)
 

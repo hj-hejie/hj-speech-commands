@@ -133,15 +133,17 @@ def main(args):
     vad = webrtcvad.Vad(int(args[0]))
     '''
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190151.wav')
-    audio, _sample_rate = read_wave('datasets/speech_commands_esp/kaideng/20181209192108.wav')
+    audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
+    #audio, _sample_rate = read_wave('datasets/speech_commands_esp/kaideng/20181209192108.wav')
+    #audio, _sample_rate = read_wave('datasets/speech_commands_esp/guandeng/20181209192400.wav')
     #vad = webrtcvad.Vad(2)
     vad = Nnvad()
     frames = frame_generator(audio, 20, 1, 10000)
-    segments = vad_collector(vad, framesi, 10000, 1, 20, 200)
+    segments = vad_collector(vad, frames, 10000, 1, 20, 200)
     for i, segment in enumerate(segments):
-        path = 'chunk-%002d.wav' % (i,)
-        #print('--end')
-        write_wave(path, segment, 1, 10000)
+        #path = 'chunk-%002d.wav' % (i,)
+        print('--end')
+        #write_wave(path, segment, 1, 10000)
  
  
 if __name__ == '__main__':
