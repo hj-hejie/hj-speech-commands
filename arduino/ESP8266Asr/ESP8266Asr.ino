@@ -3,6 +3,7 @@
 ESP8266BaseService bs;
 WiFiClient client;
 String str_payload;
+char isok;
 
 void setup()
 {
@@ -16,12 +17,16 @@ void setup()
 
 void loop()
 {
-  Serial.println("ESP8266Asr sounding........");
-  for(int i=0;i<10000;i++)
-  {
-    str_payload += char(analogRead(A0)/4);
+  isok = client.read();
+  if(isok == '1'){
+    Serial.println("ESP8266Asr sounding........");
+    for(int i=0;i<10000*0.02;i++)
+    {
+      str_payload += char(analogRead(A0)/4);
+    }
+    client.print(str_payload);
+    Serial.println("ESP8266Asr sounding ended");
+    str_payload="";
+    isok='';
   }
-  client.print(str_payload);
-  Serial.println("ESP8266Asr sounding ended");
-  str_payload="";
 }

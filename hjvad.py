@@ -75,7 +75,9 @@ def socket_frame_generator(request, frame_duration_ms = 20,
     duration = (float(n) / sample_rate)/sample_width
     buffer=b''
     while True:
-        bytes=request.recv(n)
+        if len(buffer) < n:
+            request.sendall(b'1')
+            bytes=request.recv(n)
         if bytes.strip():
             print('Asr %s sounds getted********************'%len(bytes))
             buffer+=bytes
