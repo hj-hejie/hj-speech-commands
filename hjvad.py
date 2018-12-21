@@ -18,7 +18,7 @@ class Nnvad(object):
         self.transform = Compose([FixAudioLength(time = sample_time),
                                   ToMelSpectrogram(n_mels = n_mels, n_fft=n_fft, hop_length=hop_length),
                                   ToTensor('mel_spectrogram', 'input')])
-        self.model = torch.load('1544897548406-vgg19_bn_sgd_plateau_bs96_lr1.0e-02_wd1.0e-02-best-acc.pth.vad')
+        self.model = torch.load('torch_vad.model')
         self.model.float()
 
     def is_speech(self, bytes, sample_rate, sample_width):

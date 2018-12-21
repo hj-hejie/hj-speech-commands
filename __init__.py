@@ -17,14 +17,12 @@ sys.path.append(os.getcwd())
 import transforms.librosa2 as lr
 from transforms import *
 import hjvad
+import hjtorch
 
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = 'pytorchasr'
 
-transform = Compose([FixAudioLength(time=2), ToMelSpectrogram(n_mels=40), ToTensor('mel_spectrogram', 'input')])
-model = torch.load('1533806137984-vgg19_bn_sgd_plateau_bs100_lr1.0e-02_wd1.0e-02-best-acc.pth')
-model.float()
 vad = hjvad.Nnvad()
 
 async def async_setup(hass, config):
@@ -46,27 +44,9 @@ class AsrServer(socketserver.BaseRequestHandler):
         segments = hjvad.vad_collector(vad, frames)
         for i, segment in enumerate(segments):
             print('--end')
-            path = 'chunk-%002d.wav' % (i,)
-            hjvad.write_wave(path, segment, 1, 10000)
-            '''
-            print('Asr segment getted**********************')
-            samples, sample_rate=lr.loadfrombuff(segment.bytes, 10000, 1)
-            data={
-                'samples' : samples
-                'sample_rate' : sample_rate
-            }
-            rs=transform(data)
-            _in=rs['input'].unsqueeze(0)
-            _in=torch.unsqueeze(_in, 1)
-            _in= Variable(_in)
-            out=model(_in)
-            out=softmax(out, dim=1)
-            print(out)
-            print(torch.argmax(out))
-            from datasets import CLASSES as _CLASS
-            print(torch.max(out))
-            print(_CLASS[torch.argmax(out)])
-            '''
+            #path = 'chunk-%002d.wav' % (i,)
+            #hjvad.write_wave(path, segment.bytes, 1, 10000)
+            #hjtorch.predict(segment.bytes, 10000, 1)
 
 if __name__ == '__main__':
     pytorchasrstart(None)

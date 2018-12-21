@@ -10,21 +10,16 @@ from torch.nn.functional import softmax
 #import transforms.librosa2 as lr
 
 transform = Compose([FixAudioLength(time=2), ToMelSpectrogram(n_mels=40), ToTensor('mel_spectrogram', 'input')])
-
-#samples, sample_rate = librosa.load('datasets/speech_commands_origin/train/no/a05a90c1_nohash_2.wav', None)
-#samples, sample_rate = librosa.load('datasets/speech_commands_origin/train/yes/a05a90c1_nohash_0.wav', None)
-#samples, sample_rate = librosa.load('hjwavkaikongtiao0.wav', None)
-#samples, sample_rate = librosa.load('datasets/speech_commands/train/kaidianshi/01.wav', None)
-samples, sample_rate = librosa.load('hjwavtest13.wav', None)
-model = torch.load('1533806137984-vgg19_bn_sgd_plateau_bs100_lr1.0e-02_wd1.0e-02-best-acc.pth')
-#model = torch.load('hj-best-acc.pth')
+model = torch.load('torch_predict.model')
 model.float()
-count=0
-if True:
-    #samples, sample_rate=lr.loadfrombuff(None)
-    data={}
-    data['samples'] = samples
-    data['sample_rate'] = sample_rate
+
+def predict(frames, frame_rate, frame_width):
+    samples, sample_rate = librosa.load('datasets/speech_commands/train/guankongtiao/s020181209193112.wav', None)
+    #samples, sample_rate=lr.loadfrombuff(frame_rate, frame_width)
+    data={
+        'samples' : samples,
+        'sample_rate' : sample_rate
+    }
     rs=transform(data)
     _in=rs['input'].unsqueeze(0)
     _in=torch.unsqueeze(_in, 1)
@@ -36,5 +31,6 @@ if True:
     from datasets import CLASSES as _CLASS
     print(torch.max(out))
     print(_CLASS[torch.argmax(out)])
-    #lr.output.write_wav('hjwav'+_CLASS[torch.argmax(out)]+str(count)+'.wav', samples, sample_rate)
-    count+=1
+
+if __name__ == '__main__':
+   predict(None, None, None) 
