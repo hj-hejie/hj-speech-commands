@@ -3,6 +3,8 @@ __pycache__
 *.pyc
 *.swp
 *.pth
+*.pth.vad
+*.pth.predict
 pretrained/
 runs/
 hjwav*
