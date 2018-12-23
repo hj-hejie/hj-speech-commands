@@ -3,50 +3,45 @@ import logging
 import os
 import sys
 import time
-import numpy as np
-import collections
-import socketserver
-import audioop
-import torch
-from torch.autograd import Variable
-from torchvision.transforms import *
-from torch.nn.functional import softmax
-from torch.autograd import Variable
+import paho.mqtt.client as mqtt
 from homeassistant.const import EVENT_HOMEASSISTANT_START
 sys.path.append(os.getcwd())
-import transforms.librosa2 as lr
-from transforms import *
-import hjvad
 import hjtorch
+import hjvad
 
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = 'pytorchasr'
 
-vad = hjvad.Nnvad()
-
 async def async_setup(hass, config):
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, pytorchasrstart)
-    return True 
+    return True
 
-def pytorchasrstart(self):
-    _LOGGER.info('pytorch asr start***********************************')
-    print('pytorch asr starting***********************************')
-    server = socketserver.ThreadingTCPServer(('hejie-ThinkPad-L450.local',8009),AsrServer)
-    server.serve_forever()
-    print('pytorch asr started********************************')
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code "+str(rc))
+    client.subscribe('pytorchasr1')
+    client.subscribe('pytorchasr2')
 
-class AsrServer(socketserver.BaseRequestHandler):
+#count=0
 
-    def handle(self):
-        _LOGGER.info('AsrServer handling*******************************')
-        frames = hjvad.socket_frame_generator(self.request)
-        segments = hjvad.vad_collector(vad, frames)
-        for i, segment in enumerate(segments):
-            print('--end')
-            #path = 'chunk-%002d.wav' % (i,)
-            #hjvad.write_wave(path, segment.bytes, 1, 10000)
-            #hjtorch.predict(segment.bytes, 10000, 1)
+def on_message(client, userdata, msg):
+    try:
+        #global count
+        #count+=1
+        print(msg.topic+" " + ":" + str(len(msg.payload)))
+        #hjvad.write_wave('hjtest%s.wav'%count, msg.payload)
+        for i, segment in enumerate(hjvad.vad_split(msg.payload)):
+            hjtorch.predict(segment)
+    except Exception as e:
+        logging.exception(e)
+        
+
+def pytorchasrstart():
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.connect('hejie-ThinkPad-L450.local', 1883, 60)
+    client.loop_forever()
 
 if __name__ == '__main__':
-    pytorchasrstart(None)
+    pytorchasrstart()

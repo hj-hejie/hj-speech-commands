@@ -2,20 +2,23 @@ import pdb
 import socketserver
 import hjvad
 
-path='hjtest1.wav'
-buff=b''
 
 class RecordServer(socketserver.BaseRequestHandler):
 
     def handle(self):
         frames = hjvad.socket_frame_generator(self.request)
+        path='hjtest1.wav'
+        buff=b''
         while True:
             cmd = input('cmd>')
             if cmd == 'r':
                 for i, frame in enumerate(frames):
-                    if i >= 100: break
                     buff += frame.bytes
+                    if i >= 99: break
+                print('Recorded*********%s*********************************'%len(buff))
                 hjvad.write_wave(path, buff, 1, 10000)
+                buff=b''
+
             elif cmd == 't':
                 print('hejie')
 

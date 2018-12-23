@@ -13,6 +13,12 @@ from transforms import *
 #import webrtcvad
 from datasets import CLASSES as _CLASS
 
+DEF_SAMPLE_RATE = 10000
+DEF_SAMPLE_WIDTH = 1
+DEF_DURATION = 20
+DEF_PADDING = 200
+DEF_N_REQ = int(10000 * 2)
+
 class Nnvad(object):
     def __init__(self, sample_time = 0.02, n_mels = 32, n_fft=80, hop_length=10):
         self.transform = Compose([FixAudioLength(time = sample_time),
@@ -41,7 +47,7 @@ def read_wave(path):
         return pcm_data, sample_rate
  
  
-def write_wave(path, audio, sample_width, sample_rate):
+def write_wave(path, audio, sample_width = DEF_SAMPLE_WIDTH, sample_rate = DEF_SAMPLE_RATE):
     with contextlib.closing(wave.open(path, 'wb')) as wf:
         wf.setnchannels(1)
         wf.setsampwidth(sample_width)
@@ -56,8 +62,8 @@ class Frame(object):
         self.duration = duration
  
  
-def frame_generator(audio, frame_duration_ms,
-                    sample_rate, sample_width):
+def frame_generator(audio, frame_duration_ms = DEF_DURATION,
+                    sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH):
     n = int(sample_rate * (frame_duration_ms / 1000.0) * sample_width)
     offset = 0
     timestamp = 0.0
@@ -65,88 +71,86 @@ def frame_generator(audio, frame_duration_ms,
     while offset + n < len(audio):
         yield Frame(audio[offset:offset + n], timestamp, duration)
         timestamp += duration
-        offset += n
+        offset += n * sample_width
  
-def socket_frame_generator(request, frame_duration_ms = 20,
-                    sample_rate = 10000, sample_width = 1):
-    n = int(sample_rate * (frame_duration_ms / 1000.0) * sample_width)
-    offset = 0
+def socket_frame_generator(request, n_request = DEF_N_REQ, frame_duration_ms = DEF_DURATION,
+                    sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH):
+    n_duration_bytes = int(sample_rate * (frame_duration_ms / 1000.0) * sample_width)
     timestamp = 0.0
-    duration = (float(n) / sample_rate)/sample_width
-    buffer=b''
+    duration = (float(n_duration_bytes) / sample_rate)/sample_width
+    n_remain = 0
+    count_ = 0
     while True:
-        if len(buffer) < n:
+        if n_remain <= 0:
+            count_+=1
+            print('%s***hejie send req*********************'%count_)
             request.sendall(b'1')
-            bytes=request.recv(n)
-        if bytes.strip():
-            print('Asr %s sounds getted********************'%len(bytes))
-            buffer+=bytes
-            if len(buffer) >= n:
-                yield Frame(buffer[ : n], timestamp, duration)
-                buffer=buffer[n : ]
+            n_remain = n_request
+            buffer = b''
+        bytes_recv = request.recv(n_remain)
+        if bytes_recv.strip():
+            n_remain = n_remain - len(bytes_recv)
+            buffer += bytes_recv
+            while len(buffer) >= n_duration_bytes:
+                #print('hejie yeild*********************')
+                yield Frame(buffer[ : n_duration_bytes], timestamp, duration)
+                buffer = buffer[n_duration_bytes : ]
                 timestamp += duration
-                offset += n * width
- 
+                
 def vad_collector(vad, frames,
-                  sample_rate, sample_width,
-                  frame_duration_ms,
-                  padding_duration_ms):
+                  sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH,
+                  frame_duration_ms = DEF_DURATION,
+                  padding_duration_ms = DEF_PADDING):
     num_padding_frames = int(padding_duration_ms / frame_duration_ms)
     ring_buffer = collections.deque(maxlen=num_padding_frames)
+    ring_buffer_vad_bool = collections.deque(maxlen=num_padding_frames)
     triggered = False
     voiced_frames = []
     for i, frame in enumerate(frames):
-        sys.stdout.write(
-            '1' if vad.is_speech(frame.bytes, sample_rate, sample_width) else '0')
+        #print('hejie**************len=%s'%len(frame.bytes))
+        isspeech='1' if vad.is_speech(frame.bytes, sample_rate, sample_width) else '0'
+        ring_buffer_vad_bool.append(isspeech)
+        #sys.stdout.write(isspeech)
         if not triggered:
             ring_buffer.append(frame)
-            num_voiced = len([f for f in ring_buffer
-                              if vad.is_speech(f.bytes, sample_rate, sample_width)])
+            num_voiced = len([f for f in ring_buffer_vad_bool if f == '1'])
             if num_voiced > 0.9 * ring_buffer.maxlen:
-                sys.stdout.write('+(%s)' % (ring_buffer[0].timestamp,))
+                #sys.stdout.write('+(%s)' % (ring_buffer[0].timestamp,))
                 triggered = True
                 voiced_frames.extend(ring_buffer)
                 ring_buffer.clear()
+                ring_buffer_vad_bool.clear()
         else:
             voiced_frames.append(frame)
             ring_buffer.append(frame)
-            num_unvoiced = len([f for f in ring_buffer
-                                if not vad.is_speech(f.bytes, sample_rate, sample_width)])
+            num_unvoiced = len([f for f in ring_buffer_vad_bool if f == '0'])
             if num_unvoiced > 0.9 * ring_buffer.maxlen:
-                sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
+                #sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
                 triggered = False
                 yield b''.join([f.bytes for f in voiced_frames])
                 ring_buffer.clear()
+                ring_buffer_vad_bool.clear()
                 voiced_frames = []
-    if triggered:
-        sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
-    sys.stdout.write('\n')
+    #if triggered:
+        #sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
+    #sys.stdout.write('\n')
     if voiced_frames:
         yield b''.join([f.bytes for f in voiced_frames])
  
- 
-def main(args):
-    '''
-    if len(args) != 2:
-        sys.stderr.write(
-            'Usage: example.py <aggressiveness> <path to wav file>\n')
-        sys.exit(1)
-    audio, sample_rate = read_wave(args[1])
-    vad = webrtcvad.Vad(int(args[0]))
-    '''
+vad = Nnvad()
+
+def vad_split(audio):
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190151.wav')
-    audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
+    #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/kaideng/20181209192108.wav')
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/guandeng/20181209192400.wav')
-    #vad = webrtcvad.Vad(2)
-    vad = Nnvad()
-    frames = frame_generator(audio, 20, 1, 10000)
-    segments = vad_collector(vad, frames, 10000, 1, 20, 200)
+    frames = frame_generator(audio)
+    segments = vad_collector(vad, frames)
     for i, segment in enumerate(segments):
+        #print('--end')
         #path = 'chunk-%002d.wav' % (i,)
-        print('--end')
         #write_wave(path, segment, 1, 10000)
- 
- 
+        yield segment
+
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    vad_split(None)

@@ -7,15 +7,15 @@ from datasets import *
 import torch
 from torch.autograd import Variable
 from torch.nn.functional import softmax
-#import transforms.librosa2 as lr
+import transforms.librosa2 as lr
 
 transform = Compose([FixAudioLength(time=2), ToMelSpectrogram(n_mels=40), ToTensor('mel_spectrogram', 'input')])
 model = torch.load('torch_predict.model')
 model.float()
 
-def predict(frames, frame_rate, frame_width):
-    samples, sample_rate = librosa.load('datasets/speech_commands/train/guankongtiao/s020181209193112.wav', None)
-    #samples, sample_rate=lr.loadfrombuff(frame_rate, frame_width)
+def predict(frames, frame_rate = 10000, frame_width = 1):
+    #samples, sample_rate = librosa.load('datasets/speech_commands/train/guankongtiao/s020181209193112.wav', None)
+    samples, sample_rate=lr.loadfrombuff(frames, frame_rate, frame_width)
     data={
         'samples' : samples,
         'sample_rate' : sample_rate
