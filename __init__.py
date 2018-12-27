@@ -3,45 +3,81 @@ import logging
 import os
 import sys
 import time
+import multiprocessing
+from multiprocessing import Process, Queue, Pool
 import paho.mqtt.client as mqtt
 from homeassistant.const import EVENT_HOMEASSISTANT_START
 sys.path.append(os.getcwd())
 import hjtorch
 import hjvad
+import hjlog
 
-_LOGGER = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 DOMAIN = 'pytorchasr'
+
+N_PROC = 10
 
 async def async_setup(hass, config):
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, pytorchasrstart)
     return True
 
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
-    client.subscribe('pytorchasr1')
-    client.subscribe('pytorchasr2')
+class Mqttclient:
+    def __init__(self, queues, topic = 'pytorchasr'):
+        try:
+            LOG.debug('Mqtt client %s start' % topic)
+            self.topic = topic
+            self.queues = queues
+            self.l_queues = len(queues)
+            self.i_queues = 0
+            self.client = mqtt.Client()
+            self.client.on_connect = self.on_connect
+            self.client.on_message = self.on_message
+            self.client.connect('hejie-ThinkPad-L450.local', 1883, 60)
+            self.client.loop_forever()
+        except Exception as e:
+            LOG.exception(e)
 
-#count=0
+    def on_connect(self, client, userdata, flags, rc):
+        try:
+            LOG.debug("Topic %s Connected with result code %s"%(self.topic, str(rc)))
+            client.subscribe(self.topic)
+        except Exception as e:
+            LOG.exception(e)
+    
+    def on_message(self, client, userdata, msg):
+        try:
+            LOG.debug('Mqtt channel %s put msg' % self.i_queues)
+            self.queues[self.i_queues].put(msg.payload)
+            self.i_queues = (self.i_queues + 1) % self.l_queues
+        except Exception as e:
+            LOG.exception(e)
 
-def on_message(client, userdata, msg):
+def byte2frame(byte_queue, frame_queue):
     try:
-        #global count
-        #count+=1
-        print(msg.topic+" " + ":" + str(len(msg.payload)))
-        #hjvad.write_wave('hjtest%s.wav'%count, msg.payload)
-        for i, segment in enumerate(hjvad.vad_split(msg.payload)):
-            hjtorch.predict(segment)
+        while True:
+            byte = byte_queue.get()
+            isspeech = hjvad.vad.is_speech(byte)
+            frame = hjvad.Frame(byte, isspeech=isspeech)
+            frame_queue.put(frame)
     except Exception as e:
-        logging.exception(e)
-        
+        LOG.exception(e)
 
 def pytorchasrstart():
-    client = mqtt.Client()
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.connect('hejie-ThinkPad-L450.local', 1883, 60)
-    client.loop_forever()
+    byte_queues = []
+    frame_queues = []
+    procs = []
+    for i in range(N_PROC):
+        byte_queues.append(Queue())
+        frame_queues.append(Queue())
+        procs.append(Process(target=byte2frame, args=(byte_queues[i], frame_queues[i])))
+        procs[i].start()
+
+    Process(target = Mqttclient, args = (byte_queues, )).start()
+
+    pool = Pool(multiprocessing.cpu_count()-1)
+    for segment in hjvad.vad_split(frame_queues, N_PROC):
+        pool.apply_async(hjtorch.predict, args=(segment, ))  
 
 if __name__ == '__main__':
     pytorchasrstart()

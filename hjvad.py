@@ -1,4 +1,5 @@
 import pdb
+import logging
 import collections
 import contextlib
 import sys
@@ -12,12 +13,15 @@ from torchvision.transforms import *
 from transforms import *
 #import webrtcvad
 from datasets import CLASSES as _CLASS
+import hjlog
 
 DEF_SAMPLE_RATE = 10000
 DEF_SAMPLE_WIDTH = 1
 DEF_DURATION = 20
 DEF_PADDING = 200
 DEF_N_REQ = int(10000 * 2)
+
+LOG = logging.getLogger(__name__)
 
 class Nnvad(object):
     def __init__(self, sample_time = 0.02, n_mels = 32, n_fft=80, hop_length=10):
@@ -27,7 +31,7 @@ class Nnvad(object):
         self.model = torch.load('torch_vad.model')
         self.model.float()
 
-    def is_speech(self, bytes, sample_rate, sample_width):
+    def is_speech(self, bytes, sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH):
         samples, _sample_rate= lr.loadfrombuff(bytes, sample_rate, sample_width)
         rs = self.transform({
             'samples' : samples,
@@ -45,7 +49,19 @@ def read_wave(path):
         sample_rate = wf.getframerate()
         pcm_data = wf.readframes(wf.getnframes())
         return pcm_data, sample_rate
- 
+
+def read_wave_queue(path):
+    from queue import Queue
+    queues = [Queue()]
+    data, rate = read_wave(path)
+    l_data = len(data)
+    for i in range(0, l_data, 200):
+        if i+200 <= l_data:
+            frame_data = data[i: i+200];
+            isspeech = vad.is_speech(frame_data)
+            frame = Frame(frame_data, isspeech = isspeech)
+            queues[0].put(frame)
+    return queues, 1
  
 def write_wave(path, audio, sample_width = DEF_SAMPLE_WIDTH, sample_rate = DEF_SAMPLE_RATE):
     with contextlib.closing(wave.open(path, 'wb')) as wf:
@@ -56,11 +72,11 @@ def write_wave(path, audio, sample_width = DEF_SAMPLE_WIDTH, sample_rate = DEF_S
  
  
 class Frame(object):
-    def __init__(self, bytes, timestamp, duration):
+    def __init__(self, bytes, timestamp=None, duration=None, isspeech=None):
         self.bytes = bytes
         self.timestamp = timestamp
         self.duration = duration
- 
+        self.isspeech = isspeech
  
 def frame_generator(audio, frame_duration_ms = DEF_DURATION,
                     sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH):
@@ -97,6 +113,20 @@ def socket_frame_generator(request, n_request = DEF_N_REQ, frame_duration_ms = D
                 buffer = buffer[n_duration_bytes : ]
                 timestamp += duration
                 
+def queue_frame_generator(queues, n_queue, frame_duration_ms = DEF_DURATION,
+                    sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH):
+    n_duration_bytes = int(sample_rate * (frame_duration_ms / 1000.0) * sample_width)
+    timestamp = 0.0
+    duration = (float(n_duration_bytes) / sample_rate)/sample_width
+    i_proc = 0
+    while True:
+    #while not queues[i_proc].empty():
+        frame =  queues[i_proc].get()
+        frame.timestamp, frame.duration = timestamp, duration
+        yield frame
+        timestamp += duration
+        i_proc = (i_proc + 1) % n_queue
+                
 def vad_collector(vad, frames,
                   sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH,
                   frame_duration_ms = DEF_DURATION,
@@ -107,7 +137,6 @@ def vad_collector(vad, frames,
     triggered = False
     voiced_frames = []
     for i, frame in enumerate(frames):
-        #print('hejie**************len=%s'%len(frame.bytes))
         isspeech='1' if vad.is_speech(frame.bytes, sample_rate, sample_width) else '0'
         ring_buffer_vad_bool.append(isspeech)
         #sys.stdout.write(isspeech)
@@ -136,16 +165,57 @@ def vad_collector(vad, frames,
     #sys.stdout.write('\n')
     if voiced_frames:
         yield b''.join([f.bytes for f in voiced_frames])
+
+def queue_vad_collector(frames,
+                  sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH,
+                  frame_duration_ms = DEF_DURATION,
+                  padding_duration_ms = DEF_PADDING):
+    num_padding_frames = int(padding_duration_ms / frame_duration_ms)
+    ring_buffer = collections.deque(maxlen=num_padding_frames)
+    ring_buffer_vad_bool = collections.deque(maxlen=num_padding_frames)
+    triggered = False
+    voiced_frames = []
+    for i, frame in enumerate(frames):
+        ring_buffer_vad_bool.append(frame.isspeech)
+        #sys.stdout.write(frame.isspeech)
+        if not triggered:
+            ring_buffer.append(frame)
+            num_voiced = len([f for f in ring_buffer_vad_bool if f])
+            if num_voiced > 0.9 * ring_buffer.maxlen:
+                #sys.stdout.write('+(%s)' % (ring_buffer[0].timestamp,))
+                triggered = True
+                voiced_frames.extend(ring_buffer)
+                ring_buffer.clear()
+                ring_buffer_vad_bool.clear()
+        else:
+            voiced_frames.append(frame)
+            ring_buffer.append(frame)
+            num_unvoiced = len([f for f in ring_buffer_vad_bool if not f])
+            if num_unvoiced > 0.9 * ring_buffer.maxlen:
+                #sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
+                triggered = False
+                yield b''.join([f.bytes for f in voiced_frames])
+                ring_buffer.clear()
+                ring_buffer_vad_bool.clear()
+                voiced_frames = []
+    #if triggered:
+        #sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
+    #sys.stdout.write('\n')
+    if voiced_frames:
+        yield b''.join([f.bytes for f in voiced_frames])
  
 vad = Nnvad()
 
-def vad_split(audio):
+def vad_split(queues, n_queue):
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190151.wav')
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/kaideng/20181209192108.wav')
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/guandeng/20181209192400.wav')
-    frames = frame_generator(audio)
-    segments = vad_collector(vad, frames)
+    #frames = frame_generator(audio)
+    #segments = vad_collector(vad, frames)
+    queues, n_queue = read_wave_queue('datasets/speech_commands_esp/guandeng/20181209192400.wav')
+    frames = queue_frame_generator(queues, n_queue)
+    segments = queue_vad_collector(frames)
     for i, segment in enumerate(segments):
         #print('--end')
         #path = 'chunk-%002d.wav' % (i,)
@@ -153,4 +223,4 @@ def vad_split(audio):
         yield segment
 
 if __name__ == '__main__':
-    vad_split(None)
+    vad_split(None, None)
