@@ -4,7 +4,8 @@
 ESP8266BaseService bs;
 WiFiClient client;
 PubSubClient mqttclient(client);
-const int len_payload = 10000*2;
+const int len_payload = 10000*0.02;
+char payload[len_payload];
 
 void reconnect() {
   // Loop until we're reconnected
@@ -39,12 +40,14 @@ void loop()
   }
   mqttclient.loop();
   
-  mqttclient.beginPublish("pytorchasr1", len_payload, false);
+  
   Serial.println("ESP8266Asr sounding........");
   for(int i = 0; i < len_payload; i++)
   {
-    mqttclient.print(char(analogRead(A0)/4));
+    payload[i] = char(analogRead(A0)/4);
   }
-  mqttclient.endPublish();
   Serial.println("ESP8266Asr sounding ended");
+  mqttclient.beginPublish("pytorchasr", len_payload, false);
+  mqttclient.print(payload);
+  mqttclient.endPublish();
 }
