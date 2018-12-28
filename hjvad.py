@@ -61,6 +61,7 @@ def read_wave_queue(path):
             isspeech = vad.is_speech(frame_data)
             frame = Frame(frame_data, isspeech = isspeech)
             queues[0].put(frame)
+    LOG.debug('read_wave_queue end***********')
     return queues, 1
  
 def write_wave(path, audio, sample_width = DEF_SAMPLE_WIDTH, sample_rate = DEF_SAMPLE_RATE):
@@ -99,7 +100,7 @@ def socket_frame_generator(request, n_request = DEF_N_REQ, frame_duration_ms = D
     while True:
         if n_remain <= 0:
             count_+=1
-            print('%s***hejie send req*********************'%count_)
+            LOG.debug('%s***hejie send req*********************'%count_)
             request.sendall(b'1')
             n_remain = n_request
             buffer = b''
@@ -108,7 +109,7 @@ def socket_frame_generator(request, n_request = DEF_N_REQ, frame_duration_ms = D
             n_remain = n_remain - len(bytes_recv)
             buffer += bytes_recv
             while len(buffer) >= n_duration_bytes:
-                #print('hejie yeild*********************')
+                #LOG.debug('hejie yeild*********************')
                 yield Frame(buffer[ : n_duration_bytes], timestamp, duration)
                 buffer = buffer[n_duration_bytes : ]
                 timestamp += duration
@@ -213,7 +214,9 @@ def vad_split(queues, n_queue):
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/guandeng/20181209192400.wav')
     #frames = frame_generator(audio)
     #segments = vad_collector(vad, frames)
-    queues, n_queue = read_wave_queue('datasets/speech_commands_esp/guandeng/20181209192400.wav')
+    #queues, n_queue = read_wave_queue('datasets/speech_commands_esp/guandeng/20181209192400.wav')
+    #queues, n_queue = read_wave_queue('datasets/speech_commands_esp/kaideng/20181209192108.wav')
+    #queues, n_queue = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
     frames = queue_frame_generator(queues, n_queue)
     segments = queue_vad_collector(frames)
     for i, segment in enumerate(segments):

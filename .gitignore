@@ -5,6 +5,7 @@ __pycache__
 *.pth
 *.pth.vad
 *.pth.predict
+*.lock
 pretrained/
 runs/
 hjwav*
