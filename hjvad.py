@@ -100,7 +100,6 @@ def socket_frame_generator(request, n_request = DEF_N_REQ, frame_duration_ms = D
     while True:
         if n_remain <= 0:
             count_+=1
-            LOG.debug('%s***hejie send req*********************'%count_)
             request.sendall(b'1')
             n_remain = n_request
             buffer = b''
@@ -109,7 +108,6 @@ def socket_frame_generator(request, n_request = DEF_N_REQ, frame_duration_ms = D
             n_remain = n_remain - len(bytes_recv)
             buffer += bytes_recv
             while len(buffer) >= n_duration_bytes:
-                #LOG.debug('hejie yeild*********************')
                 yield Frame(buffer[ : n_duration_bytes], timestamp, duration)
                 buffer = buffer[n_duration_bytes : ]
                 timestamp += duration
@@ -124,6 +122,7 @@ def queue_frame_generator(queues, n_queue, frame_duration_ms = DEF_DURATION,
     #while not queues[i_proc].empty():
         frame =  queues[i_proc].get()
         frame.timestamp, frame.duration = timestamp, duration
+        LOG.debug('queue_frame_generate yield*************************')
         yield frame
         timestamp += duration
         i_proc = (i_proc + 1) % n_queue
@@ -157,11 +156,13 @@ def vad_collector(vad, frames,
             if num_unvoiced > 0.9 * ring_buffer.maxlen:
                 #sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
                 triggered = False
+                LOG.debug('queue_vad_collect yield***********************')
                 yield b''.join([f.bytes for f in voiced_frames])
                 ring_buffer.clear()
                 ring_buffer_vad_bool.clear()
                 voiced_frames = []
     #if triggered:
+        LOG.debug('queue_vad_collect end yield***********************')
         #sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
     #sys.stdout.write('\n')
     if voiced_frames:

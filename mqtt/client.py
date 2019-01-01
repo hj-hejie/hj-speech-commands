@@ -7,7 +7,7 @@ PORT = 1883
 def test():
     client = mqtt.Client()
     client.connect(HOST, PORT, 60)
-    for j in range(100):
+    for j in range(2):
         buf=[]
         for i in range(200):
             buf.append(random.randint(0,2**8-1))
