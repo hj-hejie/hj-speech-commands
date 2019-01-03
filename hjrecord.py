@@ -12,7 +12,7 @@ class AsrServer(socketserver.BaseRequestHandler):
     def handle(self):
         LOG.debug('AsrServer handling*******************************')
         buffer = b''
-        n_recv = 20000
+        n_recv = hjvad.DEF_PADDING
         while True:
             data=self.request.recv(n_recv)
             LOG.debug('asr server recv %s' % len(data))
