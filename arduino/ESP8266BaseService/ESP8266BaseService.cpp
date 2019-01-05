@@ -16,14 +16,15 @@ void ESP8266BaseService::begin(char* wifiSid, char* wifiPassword, char* dnsName)
   
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifiSid, wifiPassword);
-  Serial.print("Connecting to ");
+  Serial.print("Connecting tos ");
   Serial.println(wifiSid);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nWiFi Connected");
   _ip=WiFi.localIP();
+  Serial.print("\nWiFi Connected:");
+  Serial.println(_ip);
 
   if (!MDNS.begin(dnsName)) {
     Serial.println("Error setting up MDNS responder!");

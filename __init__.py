@@ -16,7 +16,7 @@ LOG = logging.getLogger(__name__)
 
 DOMAIN = 'pytorchasr'
 
-N_PROC = 40
+N_PROC = 30
 
 async def async_setup(hass, config):
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_START, pytorchasrstart)
@@ -30,17 +30,17 @@ class AsrServer(socketserver.BaseRequestHandler):
         buffer = b''
         l_queues = len(byte_queues)
         i_queues = 0
-        vad_padding = hjvad.DEF_PADDING
+        dur_samples = int(hjvad.DEF_DURATION * hjvad.DEF_SAMPLE_RATE)
         while True:
-            data=self.request.recv(vad_padding)
-            LOG.debug('socket recv data len %s' % len(data))
+            data=self.request.recv(dur_samples)
+            #LOG.debug('socket recv data len %s' % len(data))
             if data.strip():
                 buffer = buffer+data
-                while len(buffer) >= vad_padding:
-                    LOG.debug('socket %s put msg' % i_queues)
-                    byte_queues[i_queues].put(buffer[ : vad_padding])
+                while len(buffer) >= dur_samples:
+                    #LOG.debug('socket %s put msg' % i_queues)
+                    byte_queues[i_queues].put(buffer[ : dur_samples])
                     i_queues = (i_queues + 1) % l_queues
-                    buffer = buffer[vad_padding : ]
+                    buffer = buffer[dur_samples : ]
 
 def asrserverstart():
     try:
@@ -53,15 +53,15 @@ def byte2frame(byte_queue, frame_queue):
     try:
         while True:
             byte = byte_queue.get()
-            LOG.debug('byte2frame %s**************' % len(byte))
+            #LOG.debug('byte2frame %s**************' % len(byte))
             isspeech = hjvad.vad.is_speech(byte)
             frame = hjvad.Frame(byte, isspeech = isspeech)
             frame_queue.put(frame)
     except Exception as e:
         LOG.exception(e)
 
-def pytorchasrstart():
-    LOG.debug('pytorchasrstart*******************')
+def queuesbuild():
+    LOG.debug('queues building*******************')
     global byte_queues
     byte_queues = []
     frame_queues = []
@@ -73,10 +73,15 @@ def pytorchasrstart():
         procs[i].start()
 
     Process(target = asrserverstart).start()
+    return frame_queues
 
+def pytorchasrstart():
+    LOG.debug('pytorchasrstart*******************')
+    frame_queues = queuesbuild()
     pool = Pool(multiprocessing.cpu_count()-1)
-    for segment in hjvad.vad_split(frame_queues, N_PROC):
-        pool.apply_async(hjtorch.predict, args=(segment, ))  
+    for segment in iter(hjvad.vad_split(frame_queues)):
+        LOG.debug('end--------------')
+        #pool.apply_async(hjtorch.predict, args=(segment, ))  
 
 if __name__ == '__main__':
     pytorchasrstart()

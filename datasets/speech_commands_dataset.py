@@ -1,6 +1,3 @@
-"""Google speech commands dataset."""
-__author__ = 'Yuan Xu'
-
 import os
 import numpy as np
 
@@ -8,7 +5,7 @@ import librosa
 
 from torch.utils.data import Dataset
 
-__all__ = [ 'CLASSES', 'SpeechCommandsDataset', 'BackgroundNoiseDataset' ]
+__all__ = [ 'CLASSES', 'CLASSES1', 'CLASSES2', 'SpeechCommandsDataset', 'BackgroundNoiseDataset' ]
 
 #CLASSES = 'unknown, silence, yes, no, up, down, left, right, on, off, stop, go'.split(', ')
 CLASSES1 = 'unknown, silence, guandianshi, guankongtiao, kaidianshi, kaikongtiao'.split(', ')

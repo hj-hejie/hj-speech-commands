@@ -12,14 +12,15 @@ import transforms.librosa2 as lr
 from torchvision.transforms import *
 from transforms import *
 #import webrtcvad
-from datasets import CLASSES as _CLASS
+from datasets import CLASSES2 as _CLASS
 import hjlog
 
 DEF_SAMPLE_RATE = 10000
 DEF_SAMPLE_WIDTH = 1
-DEF_DURATION = 20
-DEF_PADDING = 200
+DEF_DURATION = 0.02
+DEF_PADDING = 0.2
 DEF_N_REQ = int(10000 * 2)
+DEF_N_DURATION = int(DEF_N_REQ / ( DEF_DURATION * DEF_SAMPLE_RATE))
 
 LOG = logging.getLogger(__name__)
 
@@ -62,7 +63,7 @@ def read_wave_queue(path):
             frame = Frame(frame_data, isspeech = isspeech)
             queues[0].put(frame)
     LOG.debug('read_wave_queue end***********')
-    return queues, 1
+    return queues
  
 def write_wave(path, audio, sample_width = DEF_SAMPLE_WIDTH, sample_rate = DEF_SAMPLE_RATE):
     with contextlib.closing(wave.open(path, 'wb')) as wf:
@@ -81,7 +82,7 @@ class Frame(object):
  
 def frame_generator(audio, frame_duration_ms = DEF_DURATION,
                     sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH):
-    n = int(sample_rate * (frame_duration_ms / 1000.0) * sample_width)
+    n = int(sample_rate * frame_duration_ms * sample_width)
     offset = 0
     timestamp = 0.0
     duration = (float(n) / sample_rate)/sample_width
@@ -92,7 +93,7 @@ def frame_generator(audio, frame_duration_ms = DEF_DURATION,
  
 def socket_frame_generator(request, n_request = DEF_N_REQ, frame_duration_ms = DEF_DURATION,
                     sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH):
-    n_duration_bytes = int(sample_rate * (frame_duration_ms / 1000.0) * sample_width)
+    n_duration_bytes = int(sample_rate * frame_duration_ms * sample_width)
     timestamp = 0.0
     duration = (float(n_duration_bytes) / sample_rate)/sample_width
     n_remain = 0
@@ -112,9 +113,10 @@ def socket_frame_generator(request, n_request = DEF_N_REQ, frame_duration_ms = D
                 buffer = buffer[n_duration_bytes : ]
                 timestamp += duration
                 
-def queue_frame_generator(queues, n_queue, frame_duration_ms = DEF_DURATION,
+def queue_frame_generator(queues, frame_duration_ms = DEF_DURATION,
                     sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH):
-    n_duration_bytes = int(sample_rate * (frame_duration_ms / 1000.0) * sample_width)
+    n_queue = len(queues)
+    n_duration_bytes = int(sample_rate * frame_duration_ms  * sample_width)
     timestamp = 0.0
     duration = (float(n_duration_bytes) / sample_rate)/sample_width
     i_proc = 0
@@ -122,7 +124,7 @@ def queue_frame_generator(queues, n_queue, frame_duration_ms = DEF_DURATION,
     #while not queues[i_proc].empty():
         frame =  queues[i_proc].get()
         frame.timestamp, frame.duration = timestamp, duration
-        LOG.debug('queue_frame_generate yield*************************')
+        #LOG.debug('queue_frame_generate %s yield %s*************************' % (i_proc, len(frame.bytes)))
         yield frame
         timestamp += duration
         i_proc = (i_proc + 1) % n_queue
@@ -136,7 +138,7 @@ def vad_collector(vad, frames,
     ring_buffer_vad_bool = collections.deque(maxlen=num_padding_frames)
     triggered = False
     voiced_frames = []
-    for i, frame in enumerate(frames):
+    for frame in iter(frames):
         isspeech='1' if vad.is_speech(frame.bytes, sample_rate, sample_width) else '0'
         ring_buffer_vad_bool.append(isspeech)
         #sys.stdout.write(isspeech)
@@ -171,19 +173,21 @@ def vad_collector(vad, frames,
 def queue_vad_collector(frames,
                   sample_rate = DEF_SAMPLE_RATE, sample_width = DEF_SAMPLE_WIDTH,
                   frame_duration_ms = DEF_DURATION,
-                  padding_duration_ms = DEF_PADDING):
+                  padding_duration_ms = DEF_PADDING, 
+                  n_duration = DEF_N_DURATION, sense = 0.9):
     num_padding_frames = int(padding_duration_ms / frame_duration_ms)
-    ring_buffer = collections.deque(maxlen=num_padding_frames)
-    ring_buffer_vad_bool = collections.deque(maxlen=num_padding_frames)
+    ring_buffer = collections.deque(maxlen = num_padding_frames)
+    ring_buffer_vad_bool = collections.deque(maxlen = num_padding_frames)
+    voiced_frames = collections.deque(maxlen = n_duration)
     triggered = False
-    voiced_frames = []
-    for i, frame in enumerate(frames):
+    for frame in iter(frames):
         ring_buffer_vad_bool.append(frame.isspeech)
-        #sys.stdout.write(frame.isspeech)
+        LOG.debug('Is speech : %s' % frame.isspeech)
         if not triggered:
             ring_buffer.append(frame)
             num_voiced = len([f for f in ring_buffer_vad_bool if f])
-            if num_voiced > 0.9 * ring_buffer.maxlen:
+            #LOG.debug('hejie num_voiced=%s' % num_voiced)
+            if num_voiced > sense * ring_buffer.maxlen:
                 #sys.stdout.write('+(%s)' % (ring_buffer[0].timestamp,))
                 triggered = True
                 voiced_frames.extend(ring_buffer)
@@ -193,13 +197,14 @@ def queue_vad_collector(frames,
             voiced_frames.append(frame)
             ring_buffer.append(frame)
             num_unvoiced = len([f for f in ring_buffer_vad_bool if not f])
-            if num_unvoiced > 0.9 * ring_buffer.maxlen:
+            #LOG.debug('hejie num_unvoiced=%s' % num_unvoiced)
+            if num_unvoiced > sense * ring_buffer.maxlen:
                 #sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
                 triggered = False
                 yield b''.join([f.bytes for f in voiced_frames])
                 ring_buffer.clear()
                 ring_buffer_vad_bool.clear()
-                voiced_frames = []
+                voiced_frames.clear()
     #if triggered:
         #sys.stdout.write('-(%s)' % (frame.timestamp + frame.duration))
     #sys.stdout.write('\n')
@@ -208,23 +213,22 @@ def queue_vad_collector(frames,
  
 vad = Nnvad()
 
-def vad_split(queues, n_queue):
-    #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190151.wav')
-    #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
-    #audio, _sample_rate = read_wave('datasets/speech_commands_esp/kaideng/20181209192108.wav')
-    #audio, _sample_rate = read_wave('datasets/speech_commands_esp/guandeng/20181209192400.wav')
-    #frames = frame_generator(audio)
-    #segments = vad_collector(vad, frames)
-    #queues, n_queue = read_wave_queue('datasets/speech_commands_esp/guandeng/20181209192400.wav')
-    #queues, n_queue = read_wave_queue('datasets/speech_commands_esp/kaideng/20181209192108.wav')
-    #queues, n_queue = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
-    frames = queue_frame_generator(queues, n_queue)
+def vad_split(queues):
+    frames = queue_frame_generator(queues)
     segments = queue_vad_collector(frames)
-    for i, segment in enumerate(segments):
-        #print('--end')
-        #path = 'chunk-%002d.wav' % (i,)
-        #write_wave(path, segment, 1, 10000)
+    for segment in iter(segments):
         yield segment
 
 if __name__ == '__main__':
-    vad_split(None, None)
+    queues = read_wave_queue('datasets/speech_commands_esp/guandeng/20181209192400.wav')
+    #queues = read_wave_queue('datasets/speech_commands_esp/kaideng/20181209192108.wav')
+    #queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
+    for segment in iter(vad_split(queues)):
+        print('--end')
+
+if __name__ == '__main__2':
+    #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190151.wav')
+    #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
+    #audio, _sample_rate = read_wave('datasets/speech_commands_esp_vad/train/_background_noise_/13chunk20181209190151.wav')
+    audio, _sample_rate = read_wave('datasets/speech_commands_esp_vad/train/speech/13chunk20181209192108.wav')
+    LOG.debug(vad.is_speech(audio))
