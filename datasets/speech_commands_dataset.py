@@ -9,8 +9,8 @@ __all__ = [ 'CLASSES', 'CLASSES1', 'CLASSES2', 'SpeechCommandsDataset', 'Backgro
 
 #CLASSES = 'unknown, silence, yes, no, up, down, left, right, on, off, stop, go'.split(', ')
 CLASSES1 = 'unknown, silence, guandianshi, guankongtiao, kaidianshi, kaikongtiao'.split(', ')
-CLASSES2 = 'silence, speech'.split(', ')
-CLASSES = CLASSES1
+CLASSES2 = 'silence, speech, noise'.split(', ')
+CLASSES = CLASSES2
 
 class SpeechCommandsDataset(Dataset):
     """Google speech commands dataset. Only 'yes', 'no', 'up', 'down', 'left',

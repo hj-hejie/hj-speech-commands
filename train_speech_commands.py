@@ -59,13 +59,13 @@ if args.input == 'mel40':
     n_mels = 40
 
 data_aug_transform = Compose([ChangeAmplitude(), ChangeSpeedAndPitchAudio(), FixAudioLength(time=args.sample_time), ToSTFT(n_fft=args.n_fft, hop_length=args.hop_length), StretchAudioOnSTFT(), TimeshiftAudioOnSTFT(), FixSTFTDimension()])
-bg_dataset = BackgroundNoiseDataset(args.background_noise, data_aug_transform, sample_length=args.sample_time)
-add_bg_noise = AddBackgroundNoiseOnSTFT(bg_dataset)
+#bg_dataset = BackgroundNoiseDataset(args.background_noise, data_aug_transform, sample_length=args.sample_time)
+#add_bg_noise = AddBackgroundNoiseOnSTFT(bg_dataset)
 train_feature_transform = Compose([ToMelSpectrogramFromSTFT(n_mels=n_mels), DeleteSTFT(), ToTensor('mel_spectrogram', 'input')])
 train_dataset = SpeechCommandsDataset(args.train_dataset,
                                 Compose([LoadAudio(),
                                          data_aug_transform,
-                                         add_bg_noise,
+                                         #add_bg_noise,
                                          train_feature_transform]))
 
 valid_feature_transform = Compose([ToMelSpectrogram(n_mels=n_mels, n_fft=args.n_fft, hop_length=args.hop_length), ToTensor('mel_spectrogram', 'input')])

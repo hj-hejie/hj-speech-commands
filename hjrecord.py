@@ -15,6 +15,13 @@ if __name__ == '__main__':
         LOG.debug('frame %s*********' % i)
         buff += frame.bytes
         if i%100 == 99:
-            LOG.debug('create file len %s*************************' % len(buff))
-            hjvad.write_wave('chunck01.wav', buff)
+            wavfile = 'datasets/speech_commands_esp/_background_noise_/%s.wav' % time.strftime('%Y%m%d%H%M%S', time.localtime())
+            #wavfile = 'datasets/speech_commands_esp/kaideng/%s.wav' % time.strftime('%Y%m%d%H%M%S', time.localtime())
+            #wavfile = 'datasets/speech_commands_esp/guandeng/%s.wav' % time.strftime('%Y%m%d%H%M%S', time.localtime())
+            #wavfile = 'datasets/speech_commands_esp/kaikongtiao/%s.wav' % time.strftime('%Y%m%d%H%M%S', time.localtime())
+            #wavfile = 'datasets/speech_commands_esp/guankongtiao/%s.wav' % time.strftime('%Y%m%d%H%M%S', time.localtime())
+            #wavfile = 'datasets/speech_commands_esp/kaidianshi/%s.wav' % time.strftime('%Y%m%d%H%M%S', time.localtime())
+            #wavfile = 'datasets/speech_commands_esp/guandianshi/%s.wav' % time.strftime('%Y%m%d%H%M%S', time.localtime())
+            LOG.debug('create file %s len %s*************************' % (wavfile, len(buff)))
+            hjvad.write_wave(wavfile, buff)
             buff = b''

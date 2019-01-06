@@ -220,11 +220,13 @@ def vad_split(queues):
         yield segment
 
 if __name__ == '__main__':
-    queues = read_wave_queue('datasets/speech_commands_esp/guandeng/20181209192400.wav')
+    #queues = read_wave_queue('datasets/speech_commands_esp/guandeng/20181209192400.wav')
     #queues = read_wave_queue('datasets/speech_commands_esp/kaideng/20181209192108.wav')
     #queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
+    queues = read_wave_queue('chunck01.wav')
     for segment in iter(vad_split(queues)):
         print('--end')
+        write_wave('chunck02.wav', segment)
 
 if __name__ == '__main__2':
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190151.wav')

@@ -80,7 +80,7 @@ def buildvaddataset():
         wavs=os.listdir(classfulldir)
         for i, wav in enumerate(wavs):
             wavfulldir=os.path.join(classfulldir, wav)
-            if i%3 is 0 or classdir == '_background_noise_':
+            if i%3 is 0:
                 totypefulldir=os.path.join(todsdir, 'train')
             elif i%3 is 1:
                 totypefulldir=os.path.join(todsdir, 'test')
@@ -89,7 +89,7 @@ def buildvaddataset():
             if not os.path.exists(totypefulldir):
                os.mkdir(totypefulldir)
             if classdir == '_background_noise_':
-                tofulldir=os.path.join(totypefulldir, '_background_noise_')
+                tofulldir=os.path.join(totypefulldir, 'noise')
             else:
                 tofulldir=os.path.join(totypefulldir, 'speech')
             if not os.path.exists(tofulldir):
@@ -118,5 +118,5 @@ def write_wave(path, frames):
 
 if __name__=='__main__':
     #builddataset()
-    createlinkdataset()
-    #buildvaddataset()
+    #createlinkdataset()
+    buildvaddataset()
