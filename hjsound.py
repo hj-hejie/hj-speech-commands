@@ -132,15 +132,24 @@ def resample(input_signal,src_fs,tar_fs):
     return output_signal
 
 def plot():
-    f = wave.open(r"datasets/speech_commands_esp/kaideng/20190106150628.wav", "rb")
-    params = f.getparams()
-    nchannels, sampwidth, framerate, nframes = params[:4]
-    str_data = f.readframes(nframes)
-    f.close()
-    wave_data = np.fromstring(str_data, dtype=np.uint8)
-    time = np.arange(0, nframes) * (1.0 / framerate)
-    pl.plot(time, wave_data)
-    pl.xlabel("time (seconds)")
+    wavs = [
+        r"datasets/speech_commands_esp/kaideng/20190106150628.wav",
+        r"datasets/speech_commands_esp/guandeng/20181209192315.wav",
+        r"datasets/speech_commands_esp/_background_noise_/20190106144856.wav",
+        r"datasets/speech_commands_esp/_background_noise_/20181209190241.wav"
+    ]
+
+    for i, wav in enumerate(wavs):
+        f = wave.open(wav, "rb")
+        params = f.getparams()
+        nchannels, sampwidth, framerate, nframes = params[:4]
+        str_data = f.readframes(nframes)
+        f.close()
+        wave_data = np.fromstring(str_data, dtype=np.uint8)
+        time = np.arange(0, nframes) * (1.0 / framerate)
+        pl.subplot(len(wavs)*100 + 11 + i)
+        pl.plot(time, wave_data)
+        pl.xlabel("time (seconds)")
     pl.show()
 
 if __name__ == '__main__':
