@@ -222,8 +222,10 @@ def vad_split(queues):
 if __name__ == '__main__':
     #queues = read_wave_queue('datasets/speech_commands_esp/guandeng/20181209192400.wav')
     #queues = read_wave_queue('datasets/speech_commands_esp/kaideng/20181209192108.wav')
+    #queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20181209190233.wav')
     #queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
-    queues = read_wave_queue('chunck01.wav')
+    #queues = read_wave_queue('datasets/speech_commands_esp/guankongtiao/20190106152103.wav')
+    queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20190106152632.wav')
     for segment in iter(vad_split(queues)):
         print('--end')
         write_wave('chunck02.wav', segment)
