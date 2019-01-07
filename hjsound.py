@@ -6,6 +6,7 @@ from pyaudio import PyAudio,paInt16
 import audioop
 import librosa
 import pdb
+import pylab as pl
 
 framerate=8000
 NUM_SAMPLES=2000
@@ -130,11 +131,24 @@ def resample(input_signal,src_fs,tar_fs):
 
     return output_signal
 
+def plot():
+    f = wave.open(r"datasets/speech_commands_esp/kaideng/20190106150628.wav", "rb")
+    params = f.getparams()
+    nchannels, sampwidth, framerate, nframes = params[:4]
+    str_data = f.readframes(nframes)
+    f.close()
+    wave_data = np.fromstring(str_data, dtype=np.uint8)
+    time = np.arange(0, nframes) * (1.0 / framerate)
+    pl.plot(time, wave_data)
+    pl.xlabel("time (seconds)")
+    pl.show()
+
 if __name__ == '__main__':
     #my_record()
-    rewrite()
+    #rewrite()
     #rewrite2()
     #mywrite()
     #conv()
     #conv2()
+    plot()
     print('Over!') 
