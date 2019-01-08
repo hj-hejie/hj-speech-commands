@@ -115,8 +115,15 @@ def write_wave(path, frames):
         wf.setframerate(10000)
         wf.writeframes(frames)
 
+def read_frames_range():
+    #with contextlib.closing(wave.open('datasets/speech_commands_esp/kaideng/20190106150628.wav', 'rb')) as wf:
+    with contextlib.closing(wave.open('datasets/speech_commands_esp/guandeng/20181209192315.wav', 'rb')) as wf:
+        pcm_data = wf.readframes(wf.getnframes())
+        pcm_data_ranged = pcm_data[9000 : -3000]
+        write_wave('chunk03.wav', pcm_data_ranged)
 
 if __name__=='__main__':
     #builddataset()
     #createlinkdataset()
-    buildvaddataset()
+    #buildvaddataset()
+    read_frames_range()

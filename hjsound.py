@@ -133,11 +133,12 @@ def resample(input_signal,src_fs,tar_fs):
 
 def plot():
     wavs = [
-        r"datasets/speech_commands_esp/kaideng/20190106150628.wav",
-        r"datasets/speech_commands_esp/guandeng/20181209192315.wav",
-        r"datasets/speech_commands_esp/_background_noise_/20190106144856.wav",
-        r"datasets/speech_commands_esp/_background_noise_/20181209190241.wav",
-        #r"datasets/speech_commands_origin/train/cat/012c8314_nohash_0.wav"
+        #r"datasets/speech_commands_esp/kaideng/20190106150628.wav",
+        #r"datasets/speech_commands_esp/guandeng/20181209192315.wav",
+        #r"datasets/speech_commands_esp/_background_noise_/20190106144856.wav",
+        #r"datasets/speech_commands_esp/_background_noise_/20181209190241.wav",
+        r"datasets/speech_commands_origin/train/cat/012c8314_nohash_0.wav",
+        r"datasets/speech_commands_origin/train/_background_noise_/white_noise.wav"
     ]
 
     for i, wav in enumerate(wavs):
@@ -146,7 +147,7 @@ def plot():
         nchannels, sampwidth, framerate, nframes = params[:4]
         str_data = f.readframes(nframes)
         f.close()
-        wave_data = np.fromstring(str_data, dtype=np.uint8)
+        wave_data = np.fromstring(str_data, dtype=np.short)
         time = np.arange(0, nframes) * (1.0 / framerate)
         df = 1 
         freq = [df*n for n in range(0,len(wave_data))]
