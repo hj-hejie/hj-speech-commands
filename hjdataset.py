@@ -97,6 +97,7 @@ def buildvaddataset():
             for k, frame in enumerate(read_frames(wavfulldir)):
                 towavfulldir=os.path.join(tofulldir, str(k)+'chunk'+wav)
                 write_wave(towavfulldir, frame)
+    shutil.copytree(os.path.join(dsdir, '_background_noise_'), os.path.join(todsdir, 'train', '_background_noise_'))
 
 def read_frames(path, duration_time=0.02, range_time=0.5):
     _range=int(10000*range_time)
@@ -126,4 +127,4 @@ if __name__=='__main__':
     #builddataset()
     #createlinkdataset()
     #buildvaddataset()
-    read_frames_range()
+    #read_frames_range()

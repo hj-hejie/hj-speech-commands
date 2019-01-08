@@ -120,8 +120,8 @@ def queue_frame_generator(queues, frame_duration_ms = DEF_DURATION,
     timestamp = 0.0
     duration = (float(n_duration_bytes) / sample_rate)/sample_width
     i_proc = 0
-    while True:
-    #while not queues[i_proc].empty():
+    #while True:
+    while not queues[i_proc].empty():
         frame =  queues[i_proc].get()
         frame.timestamp, frame.duration = timestamp, duration
         #LOG.debug('queue_frame_generate %s yield %s*************************' % (i_proc, len(frame.bytes)))
@@ -225,10 +225,11 @@ if __name__ == '__main__':
     #queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20181209190233.wav')
     #queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20181209190241.wav')
     #queues = read_wave_queue('datasets/speech_commands_esp/guankongtiao/20190106152103.wav')
-    queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20190106152632.wav')
+    #queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20190106152632.wav')
+    queues = read_wave_queue('datasets/speech_commands_esp/_background_noise_/20190106144805.wav')
     for segment in iter(vad_split(queues)):
         print('--end')
-        write_wave('chunck02.wav', segment)
+        #write_wave('chunck02.wav', segment)
 
 if __name__ == '__main__2':
     #audio, _sample_rate = read_wave('datasets/speech_commands_esp/_background_noise_/20181209190151.wav')
