@@ -106,12 +106,15 @@ def read_frames(path, duration_time=0.02, range_time=0.5):
     duration=int(10000*duration_time)
     with contextlib.closing(wave.open(path, 'rb')) as wf:
         pcm_data = wf.readframes(wf.getnframes())
-        _input = input('%s range:' % path)
-        while _input is not 's':
-            _range = _input.split(',')
-            pcm_data_ranged = pcm_data[int(_range[0]) : int(_range[0]) + 200 * int(_range[1])]
-            play(pcm_data_ranged)
+        if '_background_noise_' in path:
+            pcm_data_ranged = pcm_data[_range:-_range]
+        else:
             _input = input('%s range:' % path)
+            while _input is not 's':
+                _range = _input.split(',')
+                pcm_data_ranged = pcm_data[int(_range[0]) : int(_range[0]) + 200 * int(_range[1])]
+                play(pcm_data_ranged)
+                _input = input('%s range:' % path)
         for i in range(0, len(pcm_data_ranged), duration):
             yield pcm_data_ranged[i: i+duration];
 
