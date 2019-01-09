@@ -12,6 +12,9 @@ dsdir='datasets/speech_commands_esp/'
 todsdir='datasets/speech_commands/'
 if not os.path.exists(todsdir):os.mkdir(todsdir)
 
+tocleardsdir='datasets/speech_commands_esp_clear/'
+if not os.path.exists(tocleardsdir):os.mkdir(tocleardsdir)
+
 totraindir=todsdir+'train/'
 if not os.path.exists(totraindir):os.mkdir(totraindir)
 tonoisedir=totraindir+'_background_noise_/'
@@ -75,6 +78,29 @@ def builddataset():
             print(wavfulldir,'->',towavfulldir)
             shutil.copyfile(wavfulldir,towavfulldir)
 
+def cleardataset():
+    for classdir in set(os.listdir(dsdir))-set(['silence16hz', 'test']):
+        classfulldir=os.path.join(dsdir, classdir)
+        if classdir == '_background_noise_':
+            shutil.copytree(classfulldir, os.path.join(tocleardsdir, classdir))
+        else:
+            for wav in os.listdir(classfulldir):
+                wavclassfulldir = os.path.join(classfulldir, wav)
+                toclassdir = os.path.join(tocleardsdir, classdir)
+                if not os.path.exists(toclassdir):
+                    os.mkdir(toclassdir)
+                toclasswavdir = os.path.join(toclassdir, wav)
+                with contextlib.closing(wave.open(wavclassfulldir, 'rb')) as wf:
+                    pcm_data = wf.readframes(wf.getnframes())
+                    _input = input('%s range:' % wavclassfulldir)
+                    while _input is not 's':
+                        _range = _input.split(',')
+                        pcm_data_ranged = pcm_data[int(_range[0]) : int(_range[0]) + 200 * int(_range[1])]
+                        play(pcm_data_ranged)
+                        _input = input('%s range:' % wavclassfulldir)
+                    write_wave(toclasswavdir, pcm_data_ranged)
+        
+
 def buildvaddataset():
     for classdir in set(os.listdir(dsdir))-set(['silence16hz', 'test']):
         classfulldir=os.path.join(dsdir, classdir)
@@ -97,27 +123,18 @@ def buildvaddataset():
                os.mkdir(tofulldir)
             for k, frame in enumerate(read_frames(wavfulldir)):
                 towavfulldir=os.path.join(tofulldir, str(k)+'chunk'+wav)
-                #write_wave(towavfulldir, frame)
-                print(towavfulldir)
+                write_wave(towavfulldir, frame)
+                #print(towavfulldir)
     #shutil.copytree(os.path.join(dsdir, '_background_noise_'), os.path.join(todsdir, 'train', '_background_noise_'))
 
-def read_frames(path, duration_time=0.02, range_time=0.5):
-    _range=int(10000*range_time)
+def read_frames(path, duration_time=0.02, range_num = 1):
     duration=int(10000*duration_time)
+    _range=int(duration*range_num)
     with contextlib.closing(wave.open(path, 'rb')) as wf:
         pcm_data = wf.readframes(wf.getnframes())
-        if '_background_noise_' in path:
-            pcm_data_ranged = pcm_data[_range:-_range]
-        else:
-            _input = input('%s range:' % path)
-            while _input is not 's':
-                _range = _input.split(',')
-                pcm_data_ranged = pcm_data[int(_range[0]) : int(_range[0]) + 200 * int(_range[1])]
-                play(pcm_data_ranged)
-                _input = input('%s range:' % path)
+        pcm_data_ranged = pcm_data[_range:-_range]
         for i in range(0, len(pcm_data_ranged), duration):
             yield pcm_data_ranged[i: i+duration];
-
 
 def write_wave(path, frames):
     with contextlib.closing(wave.open(path, 'wb')) as wf:
@@ -145,5 +162,6 @@ def play(frames):
 if __name__=='__main__':
     #builddataset()
     #createlinkdataset()
-    buildvaddataset()
+    #buildvaddataset()
+    cleardataset()
     #read_frames_range()
