@@ -5,6 +5,7 @@ import shutil
 import pdb
 import contextlib
 import wave
+from pyaudio import PyAudio
 
 dsdir='datasets/speech_commands_esp/'
 
@@ -96,15 +97,21 @@ def buildvaddataset():
                os.mkdir(tofulldir)
             for k, frame in enumerate(read_frames(wavfulldir)):
                 towavfulldir=os.path.join(tofulldir, str(k)+'chunk'+wav)
-                write_wave(towavfulldir, frame)
-    shutil.copytree(os.path.join(dsdir, '_background_noise_'), os.path.join(todsdir, 'train', '_background_noise_'))
+                #write_wave(towavfulldir, frame)
+                print(towavfulldir)
+    #shutil.copytree(os.path.join(dsdir, '_background_noise_'), os.path.join(todsdir, 'train', '_background_noise_'))
 
 def read_frames(path, duration_time=0.02, range_time=0.5):
     _range=int(10000*range_time)
     duration=int(10000*duration_time)
     with contextlib.closing(wave.open(path, 'rb')) as wf:
         pcm_data = wf.readframes(wf.getnframes())
-        pcm_data_ranged = pcm_data[_range : -_range]
+        _input = input('%s range:' % path)
+        while _input is not 's':
+            _range = _input.split(',')
+            pcm_data_ranged = pcm_data[int(_range[0]) : int(_range[0]) + 200 * int(_range[1])]
+            play(pcm_data_ranged)
+            _input = input('%s range:' % path)
         for i in range(0, len(pcm_data_ranged), duration):
             yield pcm_data_ranged[i: i+duration];
 
@@ -117,14 +124,23 @@ def write_wave(path, frames):
         wf.writeframes(frames)
 
 def read_frames_range():
-    #with contextlib.closing(wave.open('datasets/speech_commands_esp/kaideng/20190106150628.wav', 'rb')) as wf:
-    with contextlib.closing(wave.open('datasets/speech_commands_esp/guandeng/20181209192315.wav', 'rb')) as wf:
+    with contextlib.closing(wave.open('datasets/speech_commands_esp/kaideng/20190106150628.wav', 'rb')) as wf:
+    #with contextlib.closing(wave.open('datasets/speech_commands_esp/guandeng/20181209192315.wav', 'rb')) as wf:
         pcm_data = wf.readframes(wf.getnframes())
-        pcm_data_ranged = pcm_data[9000 : -3000]
-        write_wave('chunk03.wav', pcm_data_ranged)
+        pcm_data_ranged = pcm_data[11000 : -1000]
+        #write_wave('chunk03.wav', pcm_data_ranged)
+        play(pcm_data_ranged)
+
+def play(frames):
+    p=PyAudio()
+    stream=p.open(format=p.get_format_from_width(1),channels=1,rate=10000,output=True)
+    stream.write(frames)
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
 
 if __name__=='__main__':
     #builddataset()
     #createlinkdataset()
-    #buildvaddataset()
+    buildvaddataset()
     #read_frames_range()
