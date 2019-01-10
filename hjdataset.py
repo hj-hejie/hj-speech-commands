@@ -65,19 +65,20 @@ def builddataset():
         wavs=os.listdir(classfulldir)
         for i, wav in enumerate(wavs):
             wavfulldir=os.path.join(classfulldir, wav)
-            if i%3 is 0 or classdir == '_background_noise_':
+            trick = i%5
+            if trick == 0 or trick == 1 or trick == 2 or classdir == '_background_noise_':
                 totypefulldir=os.path.join(todsdir, 'train')
-            elif i%3 is 1:
-                totypefulldir=os.path.join(todsdir, 'test')
-            else:
+            elif trick == 3:
                 totypefulldir=os.path.join(todsdir, 'valid')
+            else:
+                totypefulldir=os.path.join(todsdir, 'test')
             if not os.path.exists(totypefulldir):
                os.mkdir(totypefulldir) 
             tofulldir=os.path.join(totypefulldir, classdir)
             if not os.path.exists(tofulldir):
                os.mkdir(tofulldir) 
             towavfulldir=os.path.join(tofulldir, wav)
-            print(wavfulldir,'->',towavfulldir)
+            logging.debug(wavfulldir + '->' + towavfulldir)
             shutil.copyfile(wavfulldir,towavfulldir)
 
 def cleardataset():
@@ -174,5 +175,5 @@ if __name__=='__main__':
     #builddataset()
     #createlinkdataset()
     #buildvaddataset()
-    cleardataset()
+    #cleardataset()
     #read_frames_range()
