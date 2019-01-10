@@ -1,11 +1,13 @@
 #!/usr/bin/python
-
+import logging
 import os
 import shutil
 import pdb
 import contextlib
 import wave
 from pyaudio import PyAudio
+
+logging.basicConfig(level=logging.DEBUG)
 
 dsdir='datasets/speech_commands_esp/'
 
@@ -82,7 +84,10 @@ def cleardataset():
     for classdir in set(os.listdir(dsdir))-set(['silence16hz', 'test']):
         classfulldir=os.path.join(dsdir, classdir)
         if classdir == '_background_noise_':
-            shutil.copytree(classfulldir, os.path.join(tocleardsdir, classdir))
+            clearbgnoisedir = os.path.join(tocleardsdir, classdir)
+            if os.path.exists(clearbgnoisedir):
+                shutil.rmtree(clearbgnoisedir)
+            shutil.copytree(classfulldir, clearbgnoisedir)
         else:
             for wav in os.listdir(classfulldir):
                 wavclassfulldir = os.path.join(classfulldir, wav)
@@ -94,10 +99,16 @@ def cleardataset():
                     pcm_data = wf.readframes(wf.getnframes())
                     _input = input('%s range:' % wavclassfulldir)
                     while _input is not 's':
-                        _range = _input.split(',')
-                        pcm_data_ranged = pcm_data[int(_range[0]) : int(_range[0]) + 200 * int(_range[1])]
-                        play(pcm_data_ranged)
+                        try:
+                            _range = _input.split(',')
+                            index1 = int(200*float(_range[0])) if _range[0].strip() != '' else 0
+                            index2 = int(-200*float(_range[1])) if _range[1].strip() != '' else len(pcm_data)
+                            pcm_data_ranged = pcm_data[index1 : index2]
+                            play(pcm_data_ranged)
+                        except Exception as e:
+                            logging.exception(e)
                         _input = input('%s range:' % wavclassfulldir)
+                    logging.debug('write wav:%s' % toclasswavdir)
                     write_wave(toclasswavdir, pcm_data_ranged)
         
 
