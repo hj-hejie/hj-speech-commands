@@ -101,3 +101,144 @@ https://github.com/hjltu/esp8266-wifi-microphone.git
 https://github.com/benjaminzhao/ESP8266_AD7705_DEMO
 https://www.esp8266.com/
 
+
+关键的几步是：3、激活/dev/sdb2 ，这步很重要，如不激活，是引导不了的(在用cfdisk时就是有没有标志成boot）
+
+                  5、格式化/dev/sdb2，建议格式化为ext2格式  （即建立文件系统）
+
+                  8、安装grub到u盘上 （必须是超级用户 或者sudo）
+
+
+
+
+
+
+
+目的：安装grub到u盘，用u盘来维护系统
+条件：u盘支持usb-hdd启动就可以了
+环境：archlinux200806  朗科(netac)U208简约型闪存盘(2G)
+
+实现步骤：
+
+1、启动archlinux，插入u盘，fdsik查看是否检测到u盘，这里的/dev/sdb就是刚插入的u盘
+
+[root@vkill'host ~]# fdisk -l
+
+Disk /dev/sda: 8589 MB, 8589934592 bytes
+255 heads, 63 sectors/track, 1044 cylinders
+Units = cylinders of 16065 * 512 = 8225280 bytes
+Disk identifier: 0x00000000
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sda1   *           1           4       32098+  83  Linux
+/dev/sda2               5         431     3429877+   5  Extended
+/dev/sda5               5         369     2931831   83  Linux
+/dev/sda6             370         431      497983+  82  Linux swap / Solaris
+
+Disk /dev/sdb: 2004 MB, 2004877312 bytes
+62 heads, 62 sectors/track, 1018 cylinders
+Units = cylinders of 3844 * 512 = 1968128 bytes
+Disk identifier: 0x6f20736b
+
+   Device Boot      Start         End      Blocks   Id  System
+
+
+
+2、先给u盘分区，分区方案自己照自己情况，这里分区方案为2P+1E，以/dev/sdb2上安装grub为例
+这里注意：第一个主分区建议分个fat32或者ntfs，作为日常windows下U盘使用
+
+[root@vkill'host ~]# fdisk -l /dev/sdb                     （也可以使用cfdisk命令）
+
+Disk /dev/sdb: 2004 MB, 2004877312 bytes
+62 heads, 62 sectors/track, 1018 cylinders
+Units = cylinders of 3844 * 512 = 1968128 bytes
+Disk identifier: 0x6f20736b
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sdb1               1         407      782223    c  W95 FAT32 (LBA)
+/dev/sdb2             408         424       32674   83  Linux
+/dev/sdb4             425        1018     1141668    5  Extended
+
+3、激活/dev/sdb2 ，这步很重要，如不激活，是引导不了的 (在用cfdisk时就是有没有标志成boot）
+
+[root@vkill'host ~]# fdisk /dev/sdb
+Command (m for help): a
+Partition number (1-6): 2
+Command (m for help): w
+[root@vkill'host ~]#
+
+4、查看/dev/sdb2是否激活，看到boot那列有个 * 就合适了
+
+[root@vkill'host ~]# fdisk -l /dev/sdb
+
+Disk /dev/sdb: 2004 MB, 2004877312 bytes
+62 heads, 62 sectors/track, 1018 cylinders
+Units = cylinders of 3844 * 512 = 1968128 bytes
+Disk identifier: 0x6f20736b
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sdb1               1         407      782223    c  W95 FAT32 (LBA)
+/dev/sdb2   *         408         424       32674   83  Linux
+/dev/sdb4             425        1018     1141668    5  Extended
+
+[root@vkill'host ~]#
+
+5、格式化/dev/sdb2，建议格式化为ext2格式
+
+[root@vkill'host ~]# mkfs.ext2 /dev/sdb2
+
+6、挂载/dev/sdb2
+
+[root@vkill'host ~]# mkdir /media/test
+[root@vkill'host ~]# mount /dev/sdb2 /media/test
+
+7、现在先查看/media/test下是否有文件(做这步是为了和安装好grub做比较)，可以看到还没有
+
+[root@vkill'host ~]# ls /media/test
+lost+found
+
+8、安装grub到u盘上
+
+[root@vkill'host ~]# grub-install --root-directory=/media/test/ --no-floppy /dev/sdb
+
+9、再查看/media/test下是否有文件，可以看到多了很多文件，都是grub启动所需的必要文件
+
+[root@vkill'host ~]# ls /media/test/
+boot  lost+found
+[root@vkill'host ~]# ls /media/test/boot/grub/
+default        ffs_stage1_5      reiserfs_stage1_5  vstafs_stage1_5
+device.map     iso9660_stage1_5  stage1             xfs_stage1_5
+e2fs_stage1_5  jfs_stage1_5      stage2
+fat_stage1_5   minix_stage1_5    ufs2_stage1_5
+
+10、复制当前系统的menu.lst到u盘grub下
+
+[root@vkill'host ~]# cp /boot/grub/menu.lst /media/test/boot/grub/
+
+11、修改meun.lst，参照网上配置grub的教程修改
+grub也可以启动maxdos等
+
+[root@vkill'host ~]# vi /media/test/boot/grub/menu.lst
+
+12、以grub shell来安装grub到MBR
+
+[root@vkill'host ~]# grub
+grub> root (hd1,1)
+Filesystem type is ext2fs, partition type 0x83
+
+grub> setup (hd1)
+Checking if "/boot/grub/stage1" exists... yes
+Checking if "/boot/grub/stage2" exists... yes
+Checking if "/boot/grub/e2fs_stage1_5" exists... yes
+Running "embed /boot/grub/e2fs_stage1_5 (hd1)"...  16 sectors are embedded.
+succeeded
+Running "install /boot/grub/stage1 (hd1) (hd1)1+16 p (hd1,1)/boot/grub/stage2
+/boot/grub/menu.lst"... succeeded
+Done.
+
+grub> quit
+[root@vkill'host ~]#
+
+13、卸载u盘
+
+[root@vkill'host ~]# umount /dev/sdb2 
